@@ -14,7 +14,17 @@ class Settings(BaseSettings):
 
     s3_bucket: str = "cherrypick-item-crops"
     aws_region: str = "ap-northeast-2"
+    aws_endpoint_url: str | None = "http://localhost:4566"  # LocalStack edge
     guest_hmac_secret: str = "change_me"
+
+    # Redis / CORS / Client
+    redis_url: str = "redis://localhost:6379/0"
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+    ]
+    client_id_header: str = "X-Client-Id"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 

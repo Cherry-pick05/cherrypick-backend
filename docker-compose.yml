@@ -12,7 +12,26 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - dbdata:/var/lib/mysql
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+  localstack:
+    image: localstack/localstack:3.9
+    environment:
+      - SERVICES=s3,sqs
+      - AWS_DEFAULT_REGION=ap-northeast-2
+      - LS_LOG=info
+      - DEBUG=0
+    ports:
+      - "4566:4566" # edge port for all services
+    volumes:
+      - localstackdata:/var/lib/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
 volumes:
   dbdata:
-
-
+  redisdata:
+  localstackdata:
