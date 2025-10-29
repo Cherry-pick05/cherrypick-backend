@@ -20,7 +20,10 @@ from app.core.config import settings  # type: ignore
 config.set_main_option("sqlalchemy.url", settings.sqlalchemy_url)
 
 # Add your model's MetaData object here when models exist
-target_metadata = None
+from app.db.base import Base
+from app.db.models import *
+
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
