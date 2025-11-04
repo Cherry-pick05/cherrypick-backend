@@ -13,5 +13,3 @@ api_router.include_router(media_router)
 api_router.include_router(ws_router)
 api_router.include_router(items_router)
 api_router.include_router(trips_router)
-
-
