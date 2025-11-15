@@ -243,12 +243,12 @@ class DecisionAccumulator:
                 carry_on=DecisionSlot(
                     status=self.carry_status,
                     badges=sorted(self.carry_badges),
-                    reason_codes=self.carry_reasons,
+                    reason_codes=sorted(set(self.carry_reasons)),
                 ),
                 checked=DecisionSlot(
                     status=self.checked_status,
                     badges=sorted(self.checked_badges),
-                    reason_codes=self.checked_reasons,
+                    reason_codes=sorted(set(self.checked_reasons)),
                 ),
             ),
             conditions=self.conditions,
@@ -320,7 +320,7 @@ class RuleEngine:
                 if selector.max_rules and len(matched) >= selector.max_rules:
                     break
             records.extend(matched)
-        return records
+        return _select_best_records(records, ctx)
 
     def _selector_applicable(self, selector: RuleSelector, ctx: ItineraryContext) -> bool:
         if selector.requires_rescreening and not ctx.rescreening:
@@ -482,34 +482,68 @@ def _dedupe_selectors(selectors: Sequence[RuleSelector]) -> list[RuleSelector]:
     return unique
 
 
+def _select_best_records(records: Sequence[RuleRecord], ctx: ItineraryContext) -> list[RuleRecord]:
+    grouped: dict[tuple, list[RuleRecord]] = {}
+    for record in records:
+        key = (
+            record.selector.layer_kind,
+            record.rule_set.code,
+            record.item_rule.item_category or record.selector.item_category,
+        )
+        grouped.setdefault(key, []).append(record)
+
+    def specificity(record: RuleRecord) -> tuple[int, date, date]:
+        app = record.applicability
+        score = 0
+        if app.route_type and ctx.matches_route(app.route_type):
+            score += 1
+        if app.region and ctx.matches_region(app.region):
+            score += 1
+        if app.cabin_class and ctx.matches_cabin(app.cabin_class):
+            score += 1
+        return (
+            score,
+            app.effective_from or date.min,
+            (record.rule_set.imported_at.date() if record.rule_set.imported_at else date.min),
+        )
+
+    best_records: list[RuleRecord] = []
+    for key, bucket in grouped.items():
+        if len(bucket) == 1:
+            best_records.append(bucket[0])
+            continue
+        best_records.append(max(bucket, key=specificity))
+    return best_records
+
+
 def _badges_from_constraints(constraints: dict[str, Any]) -> list[str]:
-    badges: list[str] = []
+    badges: set[str] = set()
     max_container = constraints.get("max_container_ml")
     if isinstance(max_container, (int, float)) and max_container > 0:
-        badges.append(f"{int(max_container)}ml")
+        badges.add(f"{int(max_container)}ml")
     if constraints.get("zip_bag_1l"):
-        badges.append("1L zip bag")
+        badges.add("1L zip bag")
     max_total_l = constraints.get("max_total_bag_l")
     if isinstance(max_total_l, (int, float)) and max_total_l < 1.0 and "1L zip bag" not in badges:
-        badges.append("1L bag")
+        badges.add("1L bag")
     max_pieces = constraints.get("max_pieces")
     if isinstance(max_pieces, (int, float)) and max_pieces > 0:
-        badges.append(f"{int(max_pieces)}pc")
+        badges.add(f"{int(max_pieces)}pc")
     max_weight = constraints.get("max_weight_kg")
     if isinstance(max_weight, (int, float)) and max_weight > 0:
         weight = float(max_weight)
-        badges.append(f"{int(weight)}kg" if weight.is_integer() else f"{weight:.1f}kg")
+        badges.add(f"{int(weight)}kg" if weight.is_integer() else f"{weight:.1f}kg")
     size_sum = constraints.get("size_sum_cm")
     if isinstance(size_sum, (int, float)) and size_sum > 0:
-        badges.append(f"{int(size_sum)}cm")
+        badges.add(f"{int(size_sum)}cm")
     max_wh = constraints.get("max_wh")
     if isinstance(max_wh, (int, float)) and max_wh > 0:
-        badges.append(f"{int(max_wh)}Wh")
+        badges.add(f"{int(max_wh)}Wh")
     if constraints.get("steb_required"):
-        badges.append("STEB sealed")
+        badges.add("STEB sealed")
     if constraints.get("airline_approval"):
-        badges.append("Airline approval")
-    return badges
+        badges.add("Airline approval")
+    return sorted(badges)
 
 
 __all__ = ["RuleEngine"]
