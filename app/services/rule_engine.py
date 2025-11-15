@@ -148,9 +148,10 @@ class RuleEffect:
 
 
 class DecisionAccumulator:
-    def __init__(self, req_id: str, canonical: str):
+    def __init__(self, req_id: str, canonical: str, ctx: ItineraryContext):
         self.req_id = req_id
         self.canonical = canonical
+        self.ctx = ctx
         self.carry_status: DecisionStatus = "allow"
         self.checked_status: DecisionStatus = "allow"
         self.carry_badges: set[str] = set()
@@ -158,9 +159,9 @@ class DecisionAccumulator:
         self.carry_reasons: list[str] = []
         self.checked_reasons: list[str] = []
         self.conditions: dict[str, Any] = {}
-        self.sources: list[SourceEntry] = []
         self.trace: list[TraceEntry] = []
         self._trace_keys: set[tuple] = set()
+        self._sources_meta: dict[tuple[str, str], tuple[SourceEntry, str | None]] = {}
 
     def apply(self, effect: RuleEffect) -> None:
         trace_key = (
@@ -193,8 +194,11 @@ class DecisionAccumulator:
                 self._merge_condition(key, value)
 
         source_key = (effect.layer, effect.record.rule_set.code)
-        if not any(s.layer == source_key[0] and s.code == source_key[1] for s in self.sources):
-            self.sources.append(SourceEntry(layer=source_key[0], code=source_key[1]))
+        if source_key not in self._sources_meta:
+            self._sources_meta[source_key] = (
+                SourceEntry(layer=effect.layer, code=effect.record.rule_set.code),
+                effect.selector.layer_kind,
+            )
 
         self.trace.append(
             TraceEntry(
@@ -236,6 +240,13 @@ class DecisionAccumulator:
             self.conditions[key] = value
 
     def build_response(self) -> RuleEngineResponse:
+        sorted_sources = [
+            entry
+            for entry, _ in sorted(
+                self._sources_meta.values(),
+                key=lambda item: _source_sort_key(item, self.ctx),
+            )
+        ]
         return RuleEngineResponse(
             req_id=self.req_id,
             canonical=self.canonical,
@@ -252,7 +263,7 @@ class DecisionAccumulator:
                 ),
             ),
             conditions=self.conditions,
-            sources=self.sources,
+            sources=sorted_sources,
             trace=self.trace,
         )
 
@@ -265,8 +276,8 @@ class RuleEngine:
 
     def evaluate(self, payload: RuleEngineRequest) -> RuleEngineResponse:
         req_id = payload.req_id or uuid.uuid4().hex
-        accumulator = DecisionAccumulator(req_id=req_id, canonical=payload.canonical)
         ctx = ItineraryContext(payload)
+        accumulator = DecisionAccumulator(req_id=req_id, canonical=payload.canonical, ctx=ctx)
         selectors = list(get_selectors(payload.canonical))
         selectors.extend(build_airline_selectors(ctx.airlines))
         selectors.extend(build_security_selectors(payload.canonical, ctx.security_country_codes))
@@ -431,6 +442,17 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
             conditions["zip_bag_1l"] = True
     if constraint.max_total_cm is not None:
         set_condition("size_sum_cm", int(constraint.max_total_cm))
+    elif (
+        constraint.size_length_cm is not None
+        and constraint.size_width_cm is not None
+        and constraint.size_height_cm is not None
+    ):
+        total_cm = (
+            int(constraint.size_length_cm)
+            + int(constraint.size_width_cm)
+            + int(constraint.size_height_cm)
+        )
+        set_condition("size_sum_cm", total_cm)
     if constraint.lithium_ion_max_wh is not None:
         set_condition("max_wh", int(constraint.lithium_ion_max_wh))
     if constraint.max_pieces is not None:
@@ -544,6 +566,29 @@ def _badges_from_constraints(constraints: dict[str, Any]) -> list[str]:
     if constraints.get("airline_approval"):
         badges.add("Airline approval")
     return sorted(badges)
+
+
+SOURCE_KIND_ORDER: dict[str | None, int] = {
+    "security": 0,
+    "international": 1,
+    "airline": 2,
+    "dangerous_goods": 3,
+    "customs": 4,
+    None: 5,
+}
+
+
+def _source_sort_key(meta: tuple[SourceEntry, str | None], ctx: ItineraryContext) -> tuple[int, int, str, str]:
+    entry, kind = meta
+    kind_rank = SOURCE_KIND_ORDER.get(kind, SOURCE_KIND_ORDER[None])
+    if kind == "security":
+        try:
+            security_rank = ctx.security_country_codes.index(entry.code)
+        except ValueError:
+            security_rank = len(ctx.security_country_codes)
+    else:
+        security_rank = 0
+    return (kind_rank, security_rank, entry.layer, entry.code)
 
 
 __all__ = ["RuleEngine"]
