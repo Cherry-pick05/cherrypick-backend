@@ -15,9 +15,37 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Inject application settings for DB URL
+import os
 from app.core.config import settings  # type: ignore
 
-config.set_main_option("sqlalchemy.url", settings.sqlalchemy_url)
+# Allow override with root credentials for migrations (via environment variable)
+mysql_user = os.getenv("MYSQL_USER", settings.mysql_user)
+mysql_password = os.getenv("MYSQL_PASSWORD", settings.mysql_password)
+mysql_host = os.getenv("MYSQL_HOST", settings.mysql_host)
+mysql_port = os.getenv("MYSQL_PORT", str(settings.mysql_port))
+mysql_db = os.getenv("MYSQL_DB", settings.mysql_db)
+
+# Use root credentials if MYSQL_ROOT_MIGRATION is set
+if os.getenv("MYSQL_ROOT_MIGRATION", "").lower() == "true":
+    mysql_user = "root"
+    mysql_password = "root"
+
+# Build connection URL
+# Remove unix_socket parameter to force TCP/IP connection
+# If host is localhost, use 127.0.0.1 to force TCP/IP instead of Unix socket
+if mysql_host == "localhost":
+    mysql_host = "127.0.0.1"
+
+sqlalchemy_url = (
+    f"mysql+pymysql://{mysql_user}:{mysql_password}"
+    f"@{mysql_host}:{mysql_port}/{mysql_db}?charset=utf8mb4"
+)
+
+# Debug: Print connection info (without password)
+import sys
+print(f"[Alembic] Connecting to MySQL: {mysql_user}@{mysql_host}:{mysql_port}/{mysql_db}", file=sys.stderr)
+
+config.set_main_option("sqlalchemy.url", sqlalchemy_url)
 
 # Add your model's MetaData object here when models exist
 from app.db.base import Base
@@ -57,19 +85,34 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
+    try:
+        connectable = engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
         )
 
-        with context.begin_transaction():
-            context.run_migrations()
+        with connectable.connect() as connection:
+            context.configure(
+                connection=connection, target_metadata=target_metadata
+            )
+
+            with context.begin_transaction():
+                context.run_migrations()
+    except Exception as e:
+        import sys
+        print(f"\n[ERROR] Database connection failed:", file=sys.stderr)
+        print(f"  Host: {mysql_host}", file=sys.stderr)
+        print(f"  Port: {mysql_port}", file=sys.stderr)
+        print(f"  User: {mysql_user}", file=sys.stderr)
+        print(f"  Database: {mysql_db}", file=sys.stderr)
+        print(f"\n  Error: {str(e)}", file=sys.stderr)
+        print(f"\n  Troubleshooting:", file=sys.stderr)
+        print(f"  1. Check if MySQL is running: docker ps (if using Docker)", file=sys.stderr)
+        print(f"  2. Verify connection info: mysql -h {mysql_host} -P {mysql_port} -u {mysql_user} -p", file=sys.stderr)
+        print(f"  3. Set MYSQL_ROOT_MIGRATION=true to use root user", file=sys.stderr)
+        print(f"  4. Override with env vars: MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD", file=sys.stderr)
+        raise
 
 
 if context.is_offline_mode():

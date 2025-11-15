@@ -1,0 +1,58 @@
+{
+  "lithium_ion_battery_spare": [
+    {"value": "power bank", "match_type": "substring", "priority": 2},
+    {"value": "portable charger", "match_type": "substring", "priority": 1},
+    {"value": "보조배터리", "match_type": "exact", "priority": 2},
+    {"value": "モバイルバッテリー", "match_type": "substring", "priority": 2}
+  ],
+  "aerosol": [
+    {"value": "spray", "match_type": "substring", "priority": 1},
+    {"value": "헤어 스프레이", "match_type": "substring", "priority": 1},
+    {"value": "분무기", "match_type": "substring", "priority": 1},
+    {"value": "エアゾール", "match_type": "substring", "priority": 1}
+  ],
+  "cosmetics_liquid": [
+    {"value": "toner", "match_type": "substring", "priority": 1},
+    {"value": "lotion", "match_type": "substring", "priority": 1},
+    {"value": "serum", "match_type": "substring", "priority": 1},
+    {"value": "에센스", "match_type": "substring", "priority": 1}
+  ],
+  "dry_ice": [
+    {"value": "dry ice", "match_type": "substring", "priority": 2},
+    {"value": "드라이아이스", "match_type": "exact", "priority": 2}
+  ],
+  "e_cigarette_device": [
+    {"value": "vape", "match_type": "substring", "priority": 2},
+    {"value": "ecig", "match_type": "substring", "priority": 2},
+    {"value": "전자담배", "match_type": "substring", "priority": 2}
+  ],
+  "lighter": [
+    {"value": "lighter", "match_type": "substring", "priority": 1},
+    {"value": "zippo", "match_type": "substring", "priority": 2},
+    {"value": "라이터", "match_type": "substring", "priority": 1}
+  ],
+  "knife": [
+    {"value": "knife", "match_type": "substring", "priority": 2},
+    {"value": "칼", "match_type": "substring", "priority": 2},
+    {"value": "ナイフ", "match_type": "substring", "priority": 2},
+    {"value": "scissor", "match_type": "substring", "priority": 0}
+  ],
+  "scissors": [
+    {"value": "scissors", "match_type": "substring", "priority": 2},
+    {"value": "가위", "match_type": "substring", "priority": 2}
+  ],
+  "multi_tool": [
+    {"value": "multi tool", "match_type": "substring", "priority": 1},
+    {"value": "victorinox", "match_type": "substring", "priority": 1},
+    {"value": "leatherman", "match_type": "substring", "priority": 1}
+  ],
+  "hoverboard": [
+    {"value": "hoverboard", "match_type": "substring", "priority": 2},
+    {"value": "balance wheel", "match_type": "substring", "priority": 1},
+    {"value": "전동휠", "match_type": "substring", "priority": 1}
+  ],
+  "other": [
+    {"value": "misc", "match_type": "substring", "priority": 0}
+  ]
+}
+

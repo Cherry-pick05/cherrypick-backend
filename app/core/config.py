@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore[import-not-found]
 
 
 class Settings(BaseSettings):
@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     mysql_host: str = "127.0.0.1"
     mysql_port: int = 3306
     mysql_user: str = "cp_user"
-    mysql_password: str = "cp_pass"
+    mysql_password: str = "cp_pass"  # Must match docker-compose.yml MYSQL_PASSWORD
     mysql_db: str = "cherrypick"
 
     s3_bucket: str = "cherrypick-item-crops"
@@ -25,14 +25,25 @@ class Settings(BaseSettings):
         "http://localhost:5173",
     ]
     client_id_header: str = "X-Client-Id"
+    gemini_model: str = "models/gemini-2.5-flash-lite"
+    gemini_api_key: str | None = None
+    llm_classifier_temperature: float = 0.0
+    llm_classifier_max_tokens: int = 256
+    llm_classifier_timeout_sec: float = 8.0
+    llm_classifier_cache_ttl_seconds: int = 60 * 60 * 24 * 7
+    llm_classifier_confidence_threshold: float = 0.7
+    llm_classifier_enabled: bool = True
+    llm_classifier_l1_cache_size: int = 256
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
     @property
     def sqlalchemy_url(self) -> str:
+        # Force TCP/IP connection by adding unix_socket= parameter
+        # This prevents MySQL from using Unix socket for localhost connections
         return (
             f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
-            f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_db}?charset=utf8mb4"
+            f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_db}?charset=utf8mb4&unix_socket="
         )
 
 

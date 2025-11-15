@@ -1,0 +1,332 @@
+{
+    "scope": "airline",
+    "code": "KE",
+    "name": "대한항공",
+    "rules": [
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "cabin_class": "economy",
+          "max_weight_kg": 20,
+          "max_pieces": 1,
+          "max_total_cm": 158,
+          "max_size_cm": {
+            "length": 158,
+            "width": 158,
+            "height": 158
+          }
+        },
+        "severity": "warn",
+        "notes": "대한항공 국내선 일반석 위탁 수하물"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "cabin_class": "prestige",
+          "max_weight_kg": 30,
+          "max_pieces": 1,
+          "max_total_cm": 158,
+          "max_size_cm": {
+            "length": 158,
+            "width": 158,
+            "height": 158
+          }
+        },
+        "severity": "warn",
+        "notes": "대한항공 국내선 프레스티지석 위탁 수하물"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "saver",
+          "cabin_class": "economy",
+          "max_pieces": 1,
+          "max_weight_kg": 23,
+          "region": "international_non_americas"
+        },
+        "severity": "warn",
+        "notes": "국제선 (미주/브라질 제외) 일반석 세이버"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "non_saver",
+          "cabin_class": "economy",
+          "max_pieces": 1,
+          "max_weight_kg": 23,
+          "region": "international_non_americas"
+        },
+        "severity": "warn",
+        "notes": "국제선 (미주/브라질 제외) 일반석(세이버 제외)/프리미엄석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "prestige",
+          "max_pieces": 2,
+          "max_weight_kg": 32,
+          "region": "international_non_americas"
+        },
+        "severity": "warn",
+        "notes": "국제선 (미주/브라질 제외) 프레스티지석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "first",
+          "max_pieces": 3,
+          "max_weight_kg": 32,
+          "region": "international_non_americas"
+        },
+        "severity": "warn",
+        "notes": "국제선 (미주/브라질 제외) 일등석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "saver",
+          "cabin_class": "economy",
+          "max_pieces": 1,
+          "max_weight_kg": 23,
+          "region": "americas"
+        },
+        "severity": "warn",
+        "notes": "미주 출도착 (브라질 제외) 일반석 세이버"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "non_saver",
+          "cabin_class": "economy",
+          "max_pieces": 2,
+          "max_weight_kg": 23,
+          "region": "americas"
+        },
+        "severity": "warn",
+        "notes": "미주 출도착 (브라질 제외) 일반석(세이버 제외)/프리미엄석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "prestige",
+          "max_pieces": 2,
+          "max_weight_kg": 32,
+          "region": "americas"
+        },
+        "severity": "warn",
+        "notes": "미주 출도착 (브라질 제외) 프레스티지석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "first",
+          "max_pieces": 3,
+          "max_weight_kg": 32,
+          "region": "americas"
+        },
+        "severity": "warn",
+        "notes": "미주 출도착 (브라질 제외) 일등석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "saver",
+          "cabin_class": "economy",
+          "max_pieces": 2,
+          "max_weight_kg": 32,
+          "region": "brazil",
+          "effective_until": "2025-06-29"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (~2025-06-29) 일반석 세이버"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "non_saver",
+          "cabin_class": "economy",
+          "max_pieces": 2,
+          "max_weight_kg": 32,
+          "region": "brazil",
+          "effective_until": "2025-06-29"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (~2025-06-29) 일반석(세이버 제외)/프리미엄석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "prestige",
+          "max_pieces": 2,
+          "max_weight_kg": 32,
+          "region": "brazil",
+          "effective_until": "2025-06-29"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (~2025-06-29) 프레스티지석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "first",
+          "max_pieces": 3,
+          "max_weight_kg": 32,
+          "region": "brazil",
+          "effective_until": "2025-06-29"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (~2025-06-29) 일등석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "saver",
+          "cabin_class": "economy",
+          "max_pieces": 1,
+          "max_weight_kg": 23,
+          "region": "brazil",
+          "effective_from": "2025-06-30"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (2025-06-30~) 일반석 세이버"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "fare_class": "non_saver",
+          "cabin_class": "economy",
+          "max_pieces": 2,
+          "max_weight_kg": 23,
+          "region": "brazil",
+          "effective_from": "2025-06-30"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (2025-06-30~) 일반석(세이버 제외)/프리미엄석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "prestige",
+          "max_pieces": 2,
+          "max_weight_kg": 32,
+          "region": "brazil",
+          "effective_from": "2025-06-30"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (2025-06-30~) 프레스티지석"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "cabin_class": "first",
+          "max_pieces": 3,
+          "max_weight_kg": 32,
+          "region": "brazil",
+          "effective_from": "2025-06-30"
+        },
+        "severity": "warn",
+        "notes": "브라질 출도착 (2025-06-30~) 일등석"
+      },
+      {
+        "item_category": "carry_on",
+        "constraints": {
+          "cabin_class": "economy",
+          "fare_class": "inclusive",
+          "max_weight_kg": 10,
+          "max_pieces": 1,
+          "additional_items": [
+            {
+              "item": "personal_item",
+              "max_pieces": 1,
+              "max_size_cm": {
+                "length": 40,
+                "width": 30,
+                "height": 15
+              }
+            }
+          ],
+          "max_size_cm": {
+            "length": 55,
+            "width": 40,
+            "height": 20
+          }
+        },
+        "severity": "warn",
+        "notes": "휴대용 가방 1개 + 개인 소지품 1개, 총 10kg"
+      },
+      {
+        "item_category": "carry_on",
+        "constraints": {
+          "cabin_class": "premium",
+          "max_weight_kg": 10,
+          "max_pieces": 1,
+          "additional_items": [
+            {
+              "item": "personal_item",
+              "max_pieces": 1,
+              "max_size_cm": {
+                "length": 40,
+                "width": 30,
+                "height": 15
+              }
+            }
+          ],
+          "max_size_cm": {
+            "length": 55,
+            "width": 40,
+            "height": 20
+          }
+        },
+        "severity": "warn",
+        "notes": "프리미엄석 (휴대용 1개 + 개인 소지품 1개, 총 10kg)"
+      },
+      {
+        "item_category": "carry_on",
+        "constraints": {
+          "cabin_class": "prestige",
+          "max_weight_kg": 18,
+          "max_pieces": 2,
+          "max_size_cm": {
+            "length": 55,
+            "width": 40,
+            "height": 20
+          }
+        },
+        "severity": "warn",
+        "notes": "일등석/프레스티지석 휴대용 2개, 총 18kg"
+      },
+      {
+        "item_category": "carry_on",
+        "constraints": {
+          "cabin_class": "first",
+          "max_weight_kg": 18,
+          "max_pieces": 2,
+          "max_size_cm": {
+            "length": 55,
+            "width": 40,
+            "height": 20
+          }
+        },
+        "severity": "warn",
+        "notes": "일등석 휴대용 2개, 총 18kg"
+      }
+    ]
+}

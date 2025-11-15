@@ -1,8 +1,32 @@
 from app.db.models.item_image import ItemImage
-from app.db.models.regulation import RegulationMatch, RegulationRule
+from app.db.models.regulation import (
+    RegulationMatch,
+    RuleSet,
+    ItemRule,
+    Applicability,
+    ConstraintsQuant,
+    ConstraintExtra,
+    Taxonomy,
+    TaxonomySynonym,
+    PrecedencePolicy,
+)
 from app.db.models.trip import Trip
 from app.db.models.user import User
 from app.db.base import Base
 
-__all__ = ["Base", "User", "Trip", "ItemImage", "RegulationRule", "RegulationMatch"]
+__all__ = [
+    "Base",
+    "User",
+    "Trip",
+    "ItemImage",
+    "RegulationMatch",
+    "RuleSet",
+    "ItemRule",
+    "Applicability",
+    "ConstraintsQuant",
+    "ConstraintExtra",
+    "Taxonomy",
+    "TaxonomySynonym",
+    "PrecedencePolicy",
+]
 

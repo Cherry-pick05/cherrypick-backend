@@ -1,0 +1,439 @@
+{
+    "scope": "airline",
+    "code": "TW",
+    "name": "tway airlines",
+    "rules": [
+      {
+        "item_category": "carry_on",
+        "constraints": {
+          "fare_class": "event|smart|standard",
+          "max_weight_kg": 10,
+          "max_pieces": 1,
+          "additional_items": [
+            {
+              "item": "personal_item",
+              "max_pieces": 1,
+              "max_size_cm": {
+                "length": 40,
+                "width": 30,
+                "height": 15
+              }
+            }
+          ],
+          "max_size_cm": {
+            "length": 55,
+            "width": 40,
+            "height": 20
+          },
+          "max_total_cm": 115
+        },
+        "severity": "warn",
+        "notes": "일반/스마트/이벤트 운임 기내반입: 휴대 1 + 개인 1, 총 10kg"
+      },
+      {
+        "item_category": "carry_on",
+        "constraints": {
+          "fare_class": "business",
+          "max_weight_kg": 20,
+          "max_pieces": 2,
+          "per_piece_max_weight_kg": 10,
+          "max_size_cm": {
+            "length": 55,
+            "width": 40,
+            "height": 20
+          },
+          "max_total_cm": 115,
+          "additional_items": []
+        },
+        "severity": "warn",
+        "notes": "비즈니스 운임 기내반입: 휴대 2개 (각 10kg, 총 20kg)"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "fare_class": "event",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 0,
+          "max_pieces": 0
+        },
+        "severity": "warn",
+        "notes": "국내선 이벤트 운임 위탁 수하물 없음"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "fare_class": "smart",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 15,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "국내선 스마트 운임 15kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "fare_class": "standard",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 20,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "국내선 일반 운임 20kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 30,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "국내선 비즈니스 운임 30kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "domestic",
+          "passenger_type": "infant_no_seat",
+          "max_pieces": 1,
+          "allowed_items": [
+            "stroller",
+            "infant_car_seat"
+          ]
+        },
+        "severity": "info",
+        "notes": "국내선 유아 동반: 유모차 또는 유아용 카시트 1개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "mongolia_uzbekistan",
+          "fare_class": "event|smart|standard",
+          "passenger_type": "adult|child",
+          "max_pieces": 2,
+          "max_weight_kg": 23
+        },
+        "severity": "warn",
+        "notes": "몽골/우즈베키스탄 노선: 성인/소아 23kg X 2개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "mongolia_uzbekistan",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_pieces": 3,
+          "max_weight_kg": 23
+        },
+        "severity": "warn",
+        "notes": "몽골/우즈베키스탄 노선: 비즈니스 23kg X 3개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "mongolia_uzbekistan",
+          "passenger_type": "infant_no_seat",
+          "max_pieces": 2,
+          "max_weight_kg": 10,
+          "allowed_items": [
+            "stroller",
+            "walker",
+            "car_seat",
+            "infant_carrier"
+          ]
+        },
+        "severity": "info",
+        "notes": "몽골/우즈 노선: 유아 10kg 이하 1개 + 기기 1개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "singapore",
+          "fare_class": "event",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 15,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "싱가포르 노선 이벤트 15kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "singapore",
+          "fare_class": "smart|standard",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 23,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "싱가포르 노선 스마트/일반 23kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "singapore",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 40,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "싱가포르 노선 비즈니스 40kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "singapore",
+          "passenger_type": "infant_no_seat",
+          "max_weight_kg": 10,
+          "max_pieces": 2,
+          "allowed_items": [
+            "stroller",
+            "walker",
+            "car_seat",
+            "infant_carrier"
+          ]
+        },
+        "severity": "info",
+        "notes": "싱가포르 노선 유아: 10kg 이하 + 기기 1개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "australia",
+          "fare_class": "event",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 23,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "호주 노선 이벤트 23kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "australia",
+          "fare_class": "smart|standard",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 30,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "호주 노선 스마트/일반 30kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "australia",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 40,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "호주 노선 비즈니스 40kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "australia",
+          "passenger_type": "infant_no_seat",
+          "max_weight_kg": 10,
+          "max_pieces": 2,
+          "allowed_items": [
+            "stroller",
+            "walker",
+            "car_seat",
+            "infant_carrier"
+          ]
+        },
+        "severity": "info",
+        "notes": "호주 노선 유아: 10kg 이하 + 기기 1개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "europe",
+          "fare_class": "event",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 15,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "유럽 노선 이벤트 15kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "europe",
+          "fare_class": "smart|standard",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 23,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "유럽 노선 스마트/일반 23kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "europe",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 40,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "유럽 노선 비즈니스 40kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "europe",
+          "passenger_type": "infant_no_seat",
+          "max_weight_kg": 10,
+          "max_pieces": 2,
+          "allowed_items": [
+            "stroller",
+            "walker",
+            "car_seat",
+            "infant_carrier"
+          ]
+        },
+        "severity": "info",
+        "notes": "유럽 노선 유아: 10kg 이하 + 기기 1개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "guam_saipan_canada",
+          "fare_class": "event|smart|standard",
+          "passenger_type": "adult|child",
+          "max_pieces": 1,
+          "max_weight_kg": 23
+        },
+        "severity": "warn",
+        "notes": "괌/사이판/캐나다 노선: 일반 운임 23kg X 1개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "guam_saipan_canada",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_pieces": 2,
+          "max_weight_kg": 23
+        },
+        "severity": "warn",
+        "notes": "괌/사이판/캐나다 노선: 비즈니스 23kg X 2개"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "other",
+          "fare_class": "smart",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 15,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "기타 국제선 스마트 15kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "other",
+          "fare_class": "standard",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 20,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "기타 국제선 일반 20kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "other",
+          "fare_class": "business",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 30,
+          "max_pieces": 1
+        },
+        "severity": "warn",
+        "notes": "기타 국제선 비즈니스 30kg"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "other",
+          "fare_class": "event",
+          "passenger_type": "adult|child",
+          "max_weight_kg": 0,
+          "max_pieces": 0
+        },
+        "severity": "warn",
+        "notes": "기타 국제선 이벤트 무료 위탁 없음"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "route_type": "international",
+          "region": "other",
+          "passenger_type": "infant_no_seat",
+          "max_weight_kg": 10,
+          "max_pieces": 2,
+          "allowed_items": [
+            "stroller",
+            "walker",
+            "car_seat",
+            "infant_carrier"
+          ]
+        },
+        "severity": "info",
+        "notes": "기타 국제선 유아 수하물 규정"
+      },
+      {
+        "item_category": "checked",
+        "constraints": {
+          "max_total_cm": 203,
+          "max_weight_per_piece_kg": 32,
+          "notes": [
+            "특정 노선(미주/괌/사이판/캐나다) 2개 합계 273cm 제한",
+            "32kg 초과 시 분리 필요",
+            "일부 노선에서 가족/일행 무게 합산 불가"
+          ]
+        },
+        "severity": "warn",
+        "notes": "티웨이 위탁 수하물 공통 제한"
+      }
+    ]
+  }

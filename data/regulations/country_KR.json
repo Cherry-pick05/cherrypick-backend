@@ -1,0 +1,148 @@
+{
+    "scope": "country",
+    "code": "KR",
+    "name": "Republic of Korea (Incheon Airport Security)",
+    "rules": [
+      {
+        "item_category": "restricted_liquids",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "max_container_ml": 100,
+          "max_total_bag_l": 1,
+          "bag_type": "transparent_ziplock",
+          "permitted_bag_count": 1,
+          "domestic_flight_exception": "No volume restriction for domestic routes.",
+          "checked_spray_limit_per_item_ml": 500,
+          "checked_spray_total_limit_l": 2,
+          "notes": [
+            "Liquids, sprays, gels (cosmetics, toiletries, medicine)",
+            "Containers ≤100 ml in a single 1 L zip bag; bag must be sealed.",
+            "Non-flammable sprays in checked baggage: ≤500 ml per item, ≤2 L total."
+          ]
+        },
+        "severity": "warn"
+      },
+      {
+        "item_category": "restricted_foods",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "max_container_ml": 100,
+          "bag_requirement": "1L transparent ziplock (same as liquids)",
+          "domestic_flight_exception": "No volume restriction on domestic flights.",
+          "notes": [
+            "Foods containing liquids/gel (e.g., gochujang, kimchi) follow the same 100 ml rule for carry-on.",
+            "Allowed without volume limits in checked baggage."
+          ]
+        },
+        "severity": "warn"
+      },
+      {
+        "item_category": "prohibited",
+        "constraints": {
+          "item": "blades_and_swords",
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "exceptions": [
+            "Butter knives with rounded blades",
+            "Razors with safety blades or electric razors",
+            "Airline-owned in-flight knives"
+          ],
+          "notes": "Sharp objects such as swords, daggers, large knives are prohibited in cabin baggage."
+        },
+        "severity": "block"
+      },
+      {
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "item": "stun_guns_firearms_self_defense_tools",
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "requirements": [
+            "Provide firearm possession permit or import/export license to airline.",
+            "Separate ammunition and secure in container.",
+            "Scopes and firearm parts may be carried on or checked."
+          ],
+          "notes": "Subject to airline approval and national firearm regulations."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "item": "tools",
+          "description": "Hammers, wrenches, other heavy tools",
+          "carry_on_allowed": false,
+          "checked_allowed": true
+        },
+        "severity": "warn"
+      },
+      {
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "item": "lithium_battery_spares",
+          "carry_on_allowed": true,
+          "checked_allowed": false,
+          "lithium_ion_max_wh": 100,
+          "operator_approval_required_for_wh_range": {
+            "min_wh": 100,
+            "max_wh": 160,
+            "max_quantity": 2
+          },
+          "operator_approval_required": true,
+          "on_person_allowed": false,
+          "lithium_ion_above_160_wh_allowed": false,
+          "notes": [
+            "Spare Li-ion batteries ≤100 Wh allowed in cabin without quantity restriction.",
+            "100–160 Wh: up to 2 batteries with airline approval.",
+            ">160 Wh not permitted.",
+            "Standards may vary by airline; confirm before travel."
+          ]
+        },
+        "severity": "warn"
+      },
+      {
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "item": "flammable_gases_liquids_radioactive_materials",
+          "carry_on_allowed": false,
+          "checked_allowed": false,
+          "notes": "Follow aviation hazardous materials transport standards and airline guidance."
+        },
+        "severity": "block"
+      },
+      {
+        "item_category": "restricted_items",
+        "constraints": {
+          "items": [
+            "Materials undermining national security, public safety, or morals (books, media, etc.)",
+            "Items leaking government secrets or aiding espionage",
+            "Counterfeit or altered currency, securities",
+            "Firearms, swords, explosives, replicas, and toxic substances (permit required from authorities)",
+            "Narcotics, psychotropic substances, cannabis products (require approval from Ministry of Health and Welfare)",
+            "Protected wildlife/plants and derivatives (CITES restrictions)",
+            "Currency or KRW-denominated instruments exceeding USD 10,000-equivalent without declaration",
+            "Cashier’s checks, personal checks, postal orders, precious metals (restricted)",
+            "Cultural properties (export permit or certificate required)",
+            "Aquatic species requiring transplantation approval under Fisheries Act",
+            "Hazardous wastes subject to transboundary movement regulations",
+            "Plants, fruits, vegetables, agricultural products (require quarantine/inspection certificates)"
+          ],
+          "notes": "May require permits, declarations, or are subject to confiscation if carried without authorization."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_category": "security_guidance",
+        "constraints": {
+          "carry_on_standards": [
+            "Liquids ≤100 ml per container inside a sealed 1 L transparent bag.",
+            "Duty-free liquids allowed regardless of volume when sealed in approved duty-free bags until final destination."
+          ],
+          "handling_of_abandoned_items": "Prohibited items surrendered at screening are donated to social welfare organizations and publicly reported."
+        },
+        "severity": "info"
+      }
+    ]
+  }

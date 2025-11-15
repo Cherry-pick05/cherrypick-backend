@@ -1,0 +1,226 @@
+{
+    "scope": "international",
+    "code": "IATA",
+    "name": "IATA Dangerous Goods Table 2.3.A",
+    "rules": [
+      {
+        "item_name": "Alcoholic beverages (24%–70% ABV, retail packaging)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": false,
+          "max_container_l": 5,
+          "max_total_l": 5,
+          "notes": "≤24% ABV alcoholic beverages are unrestricted."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Ammunition (Div. 1.4S, UN0012/UN0014)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "operator_approval_required": false,
+          "on_person_allowed": false,
+          "max_weight_per_person_kg": 5,
+          "notes": "For personal use; allowances cannot be combined."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Avalanche rescue backpack (compressed gas Div. 2.2)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": false,
+          "max_quantity_per_person": 1,
+          "pyrotechnic_trigger_max_mg": 200,
+          "notes": "Must be packed to prevent accidental activation; airbag needs pressure relief valves."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Baggage with installed lithium batteries (non-removable, >0.3 g Li metal or >2.7 Wh)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": false,
+          "operator_approval_required": false,
+          "on_person_allowed": false
+        },
+        "severity": "block"
+      },
+      {
+        "item_name": "Baggage with installed lithium batteries (non-removable ≤0.3 g Li / ≤2.7 Wh; removable batteries)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": false,
+          "lithium_metal_g": 0.3,
+          "lithium_ion_max_wh": 2.7,
+          "notes": "Removable batteries must be carried in cabin; baggage with non-removable batteries limited to ≤0.3 g Li or ≤2.7 Wh."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Spare/loose batteries (incl. lithium, NiMH, dry cells)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": false,
+          "operator_approval_required": false,
+          "on_person_allowed": false,
+          "max_spare_batteries": 20,
+          "lithium_metal_g": 2,
+          "lithium_ion_max_wh": 100,
+          "non_spillable_max_volts": 12,
+          "non_spillable_max_wh": 100,
+          "non_spillable_max_quantity": 2,
+          "notes": "Operator may approve >20 batteries; terminals must be protected against short circuit."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Camping stoves and empty fuel containers (flammable liquids)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "operator_approval_required": false,
+          "on_person_allowed": false,
+          "notes": "Fuel tank/container must be empty; see subsection 2.3.2.5."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Chemical Agent Monitoring Equipment (OPCW staff on official travel)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": false
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Disabling devices (mace, pepper spray, etc.)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": false,
+          "operator_approval_required": false,
+          "on_person_allowed": false
+        },
+        "severity": "block"
+      },
+      {
+        "item_name": "Dry ice (solid carbon dioxide) ≤2.5 kg",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": false,
+          "max_weight_kg": 2.5,
+          "notes": "Package must allow CO₂ release; checked baggage must be marked with “Dry ice” and net weight."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Electronic cigarettes / personal vaporizers",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": false,
+          "operator_approval_required": false,
+          "on_person_allowed": true,
+          "notes": "Devices must be protected to prevent accidental activation."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Electro shock weapons (e.g., Tasers)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": false,
+          "operator_approval_required": false,
+          "on_person_allowed": false
+        },
+        "severity": "block"
+      },
+      {
+        "item_name": "Fuel cells powering portable electronic devices",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": false,
+          "operator_approval_required": false,
+          "on_person_allowed": true,
+          "notes": "See subsection 2.3.5.9 for detailed limits."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Fuel cell cartridges (spares for portable electronic devices)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": true,
+          "notes": "Refer to subsection 2.3.5.9."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Gas cartridges (small, non-flammable, Division 2.2) for personal safety devices",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": true,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": false,
+          "max_devices_per_person": 2,
+          "max_spare_cartridges_per_device": 2,
+          "max_other_cartridges": 4,
+          "max_cartridge_volume_ml": 50,
+          "notes": "Applies to self-inflating life jackets/vests; see subsection 2.3.4.2."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Gas cylinders for mechanical limbs (non-flammable, non-toxic)",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": true,
+          "notes": "Spare cylinders allowed if needed for the journey."
+        },
+        "severity": "warn"
+      },
+      {
+        "item_name": "Hair-styling equipment with hydrocarbon gas cartridge",
+        "item_category": "hazardous_materials",
+        "constraints": {
+          "carry_on_allowed": false,
+          "checked_allowed": true,
+          "operator_approval_required": true,
+          "on_person_allowed": true,
+          "max_devices_per_person": 1,
+          "notes": "Safety cover must be fitted; spare cartridges not permitted."
+        },
+        "severity": "warn"
+      }
+    ]
+  }
