@@ -75,6 +75,13 @@ class TraceEntry(BaseModel):
     constraints_used: Dict[str, Any] = Field(default_factory=dict)
 
 
+class TipEntry(BaseModel):
+    id: str
+    text: str
+    tags: list[str] = Field(default_factory=list)
+    relevance: float = 0.5
+
+
 class RuleEngineResponse(BaseModel):
     req_id: str
     canonical: str
@@ -82,5 +89,6 @@ class RuleEngineResponse(BaseModel):
     conditions: Dict[str, Any]
     sources: list[SourceEntry]
     trace: list[TraceEntry]
+    ai_tips: list[TipEntry] = Field(default_factory=list)
 
 

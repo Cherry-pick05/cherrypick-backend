@@ -27,6 +27,7 @@ from app.db.models import (
     RuleSet,
 )
 from app.schemas.decision import RuleEngineRequest
+from app.services.ai_tips import generate_ai_tips
 from app.services.rule_engine import RuleEngine
 
 
@@ -78,6 +79,12 @@ def test_cosmetics_liquid_merges_security_and_airline(db_session: Session) -> No
     assert result.decision.checked.reason_codes == ["AIR_KE_CHECKED_ALLOW"]
     assert len(result.trace) == 4
 
+    tips = generate_ai_tips(payload, result, limit=4)
+    tip_ids = [tip.id for tip in tips]
+    assert "tip.split_100ml" in tip_ids
+    assert "tip.zip_bag" in tip_ids
+    assert "tip.rescreen" in tip_ids
+
 
 def test_cosmetics_liquid_without_rescreening_excludes_countries(db_session: Session) -> None:
     _seed_security_rule(db_session, code="KR")
@@ -98,6 +105,9 @@ def test_cosmetics_liquid_without_rescreening_excludes_countries(db_session: Ses
         ("country_security", "KR"),
         ("airline", "KE"),
     ]
+
+    tips = generate_ai_tips(payload, result)
+    assert "tip.rescreen" not in {tip.id for tip in tips}
 
 
 def test_cosmetics_liquid_via_japan_orders_security(db_session: Session) -> None:
@@ -121,6 +131,9 @@ def test_cosmetics_liquid_via_japan_orders_security(db_session: Session) -> None
         ("airline", "KE"),
     ]
 
+    tips = generate_ai_tips(payload, result)
+    assert "tip.rescreen" in {tip.id for tip in tips}
+
 
 def test_aerosol_uses_dg_limits_when_no_security(db_session: Session) -> None:
     _seed_pack_safe_aerosol_rule(db_session)
@@ -142,6 +155,9 @@ def test_aerosol_uses_dg_limits_when_no_security(db_session: Session) -> None:
         ("dangerous_goods", "US_PACKSAFE_MD")
     ]
 
+    tips = generate_ai_tips(payload, result)
+    assert "tip.aerosol_cap" in {tip.id for tip in tips}
+
 
 def test_lithium_spare_denies_checked_baggage(db_session: Session) -> None:
     _seed_lithium_rules(db_session)
@@ -159,6 +175,9 @@ def test_lithium_spare_denies_checked_baggage(db_session: Session) -> None:
     assert result.decision.carry_on.status == "limit"
     assert result.decision.checked.status == "deny"
     assert "DG_IATA_SPARE_LIION" in result.decision.carry_on.reason_codes
+
+    tips = generate_ai_tips(payload, result)
+    assert "tip.lithium_spare" in {tip.id for tip in tips}
 
 
 def _seed_security_rule(session: Session, code: str) -> None:

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.db.models import RegulationMatch
 from app.db.session import get_db
 from app.schemas.decision import RuleEngineRequest, RuleEngineResponse
+from app.services.ai_tips import generate_ai_tips
 from app.services.item_classifier import ClassificationResult, classify_label
 from app.services.rule_engine import RuleEngine
 
@@ -70,7 +71,9 @@ def classify_item(req: ClassificationRequest, db: Session = Depends(get_db)) -> 
 @router.post("/decide", response_model=RuleEngineResponse, status_code=status.HTTP_200_OK)
 def decide_item(req: RuleEngineRequest, db: Session = Depends(get_db)) -> RuleEngineResponse:
     engine = RuleEngine(db)
-    return engine.evaluate(req)
+    result = engine.evaluate(req)
+    result.ai_tips = generate_ai_tips(req, result)
+    return result
 
 
 def _persist_match(db: Session, req_id: str, result: ClassificationResult) -> None:
