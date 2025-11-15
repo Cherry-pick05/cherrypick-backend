@@ -24,6 +24,7 @@ from app.services.rule_engine_config import (
     DEFAULT_LAYER_BY_SCOPE,
     RuleSelector,
     build_airline_selectors,
+    build_security_selectors,
     get_selectors,
 )
 
@@ -36,8 +37,9 @@ MIN_CONDITION_KEYS = {
     "max_container_ml",
     "max_total_bag_l",
     "max_wh",
-    "max_count",
+    "max_pieces",
     "max_weight_kg",
+    "size_sum_cm",
 }
 BOOL_CONDITION_KEYS = {
     "airline_approval",
@@ -76,8 +78,9 @@ class ItineraryContext:
         for airport in self.security_airports:
             iso = get_country_code(airport)
             if iso:
-                self.security_countries.append(iso)
-        self._security_country_set = {code.upper() for code in self.security_countries}
+                self.security_countries.append(iso.upper())
+        self.security_country_codes = self.security_countries
+        self._security_country_set = set(self.security_country_codes)
 
         self.cabin_classes = {
             seg.cabin_class.lower()
@@ -136,6 +139,8 @@ class RuleEffect:
     reason_codes: set[str]
     constraints_used: dict[str, Any]
     expose_conditions: bool = True
+    applies_to_carry_on: bool = True
+    applies_to_checked: bool = True
 
     @property
     def layer(self) -> str:
@@ -155,15 +160,30 @@ class DecisionAccumulator:
         self.conditions: dict[str, Any] = {}
         self.sources: list[SourceEntry] = []
         self.trace: list[TraceEntry] = []
+        self._trace_keys: set[tuple] = set()
 
     def apply(self, effect: RuleEffect) -> None:
-        if effect.carry_status:
-            self.carry_status = self._merge_status(self.carry_status, effect.carry_status)
+        trace_key = (
+            effect.record.item_rule.id,
+            effect.layer,
+            effect.record.rule_set.code,
+            effect.carry_status,
+            effect.checked_status,
+            tuple(sorted(effect.reason_codes)),
+        )
+        if trace_key in self._trace_keys:
+            return
+        self._trace_keys.add(trace_key)
+
+        if effect.applies_to_carry_on:
+            self.carry_status = self._merge_status(self.carry_status, effect.carry_status or "allow")
             self.carry_badges.update(effect.carry_badges)
+            self.carry_badges.update(_badges_from_constraints(effect.constraints_used))
             self._extend_unique(self.carry_reasons, effect.reason_codes)
-        if effect.checked_status:
-            self.checked_status = self._merge_status(self.checked_status, effect.checked_status)
+        if effect.applies_to_checked:
+            self.checked_status = self._merge_status(self.checked_status, effect.checked_status or "allow")
             self.checked_badges.update(effect.checked_badges)
+            self.checked_badges.update(_badges_from_constraints(effect.constraints_used))
             self._extend_unique(self.checked_reasons, effect.reason_codes)
 
         if effect.expose_conditions:
@@ -181,8 +201,8 @@ class DecisionAccumulator:
                 code=effect.record.rule_set.code,
                 item_category=effect.record.item_rule.item_category,
                 effect={
-                    "carry_on": effect.carry_status,
-                    "checked": effect.checked_status,
+                    "carry_on": effect.carry_status or "allow",
+                    "checked": effect.checked_status or "allow",
                 },
                 applied=True,
                 reason_codes=sorted(effect.reason_codes),
@@ -247,6 +267,8 @@ class RuleEngine:
         ctx = ItineraryContext(payload)
         selectors = list(get_selectors(payload.canonical))
         selectors.extend(build_airline_selectors(ctx.airlines))
+        selectors.extend(build_security_selectors(payload.canonical, ctx.security_country_codes))
+        selectors = _dedupe_selectors(selectors)
         if not selectors:
             return accumulator.build_response()
 
@@ -313,23 +335,30 @@ class RuleEngine:
         carry_status = compute_status(constraint.carry_on_allowed, record.item_rule.severity, constraint)
         checked_status = compute_status(constraint.checked_allowed, record.item_rule.severity, constraint)
 
+        applies_to_carry_on = record.selector.applies_to_carry_on
+        applies_to_checked = record.selector.applies_to_checked
+
+        if record.selector.layer_kind == "security":
+            checked_status = "allow"
         if record.selector.layer_kind == "airline":
             if record.item_rule.item_category == "carry_on":
                 carry_status = "limit"
-                checked_status = None
-            elif record.item_rule.item_category == "checked":
-                carry_status = None
                 checked_status = "allow"
+                applies_to_checked = False
+            elif record.item_rule.item_category == "checked":
+                carry_status = "allow"
+                checked_status = "allow"
+                applies_to_carry_on = False
 
-        if not record.selector.applies_to_carry_on:
-            carry_status = None
-        if not record.selector.applies_to_checked:
-            checked_status = None
+        if not applies_to_carry_on:
+            carry_status = carry_status or "allow"
+        if not applies_to_checked:
+            checked_status = checked_status or "allow"
 
-        carry_badges = set(record.selector.badges) if record.selector.applies_to_carry_on else set()
-        checked_badges = set(record.selector.badges) if record.selector.applies_to_checked else set()
+        carry_badges = set(record.selector.badges) if applies_to_carry_on else set()
+        checked_badges = set(record.selector.badges) if applies_to_checked else set()
         conditions = extract_conditions(constraint, record.selector, ctx)
-        expose_conditions = record.selector.layer_kind != "airline"
+        expose_conditions = True
 
         return RuleEffect(
             selector=record.selector,
@@ -341,6 +370,8 @@ class RuleEngine:
             reason_codes=reason,
             constraints_used=conditions,
             expose_conditions=expose_conditions,
+            applies_to_carry_on=applies_to_carry_on,
+            applies_to_checked=applies_to_checked,
         )
 
 
@@ -403,7 +434,7 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
     if constraint.lithium_ion_max_wh is not None:
         set_condition("max_wh", int(constraint.lithium_ion_max_wh))
     if constraint.max_pieces is not None:
-        set_condition("max_count", int(constraint.max_pieces))
+        set_condition("max_pieces", int(constraint.max_pieces))
     if constraint.max_weight_kg is not None:
         set_condition("max_weight_kg", float(constraint.max_weight_kg))
     if constraint.operator_approval_required:
@@ -421,12 +452,64 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
         conditions["steb_required"] = True
 
     if "max_spare_batteries" in ext and ext["max_spare_batteries"] is not None:
-        set_condition("max_count", int(ext["max_spare_batteries"]))
+        set_condition("max_pieces", int(ext["max_spare_batteries"]))
 
     if selector.layer_kind == "security" and "steb_required" not in conditions:
         conditions["steb_required"] = False
 
     return conditions
+
+
+def _dedupe_selectors(selectors: Sequence[RuleSelector]) -> list[RuleSelector]:
+    seen: set[tuple] = set()
+    unique: list[RuleSelector] = []
+    for selector in selectors:
+        key = (
+            selector.scope,
+            selector.code,
+            selector.item_category,
+            selector.item_name_contains,
+            selector.ext_contains,
+            selector.layer_kind,
+            selector.applies_to_carry_on,
+            selector.applies_to_checked,
+            selector.reason_codes,
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(selector)
+    return unique
+
+
+def _badges_from_constraints(constraints: dict[str, Any]) -> list[str]:
+    badges: list[str] = []
+    max_container = constraints.get("max_container_ml")
+    if isinstance(max_container, (int, float)) and max_container > 0:
+        badges.append(f"{int(max_container)}ml")
+    if constraints.get("zip_bag_1l"):
+        badges.append("1L zip bag")
+    max_total_l = constraints.get("max_total_bag_l")
+    if isinstance(max_total_l, (int, float)) and max_total_l < 1.0 and "1L zip bag" not in badges:
+        badges.append("1L bag")
+    max_pieces = constraints.get("max_pieces")
+    if isinstance(max_pieces, (int, float)) and max_pieces > 0:
+        badges.append(f"{int(max_pieces)}pc")
+    max_weight = constraints.get("max_weight_kg")
+    if isinstance(max_weight, (int, float)) and max_weight > 0:
+        weight = float(max_weight)
+        badges.append(f"{int(weight)}kg" if weight.is_integer() else f"{weight:.1f}kg")
+    size_sum = constraints.get("size_sum_cm")
+    if isinstance(size_sum, (int, float)) and size_sum > 0:
+        badges.append(f"{int(size_sum)}cm")
+    max_wh = constraints.get("max_wh")
+    if isinstance(max_wh, (int, float)) and max_wh > 0:
+        badges.append(f"{int(max_wh)}Wh")
+    if constraints.get("steb_required"):
+        badges.append("STEB sealed")
+    if constraints.get("airline_approval"):
+        badges.append("Airline approval")
+    return badges
 
 
 __all__ = ["RuleEngine"]

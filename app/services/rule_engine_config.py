@@ -48,6 +48,16 @@ DEFAULT_LAYER_BY_SCOPE: dict[str, LayerName] = {
     "airline": "airline",
 }
 
+SECURITY_CANONICALS: dict[str, tuple[str, ...]] = {
+    "cosmetics_liquid": ("restricted_liquids",),
+}
+
+SECURITY_COUNTRY_CODE_MAP: dict[str, str] = {
+    "KR": "KR",
+    "US": "US_TSA",
+    "CN": "CN",
+}
+
 
 CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
     "cosmetics_liquid": (
@@ -263,11 +273,37 @@ def build_airline_selectors(airline_codes: Iterable[str]) -> list[RuleSelector]:
     return selectors
 
 
+def build_security_selectors(canonical: str, country_codes: Iterable[str]) -> list[RuleSelector]:
+    categories = SECURITY_CANONICALS.get(canonical)
+    if not categories:
+        return []
+    selectors: list[RuleSelector] = []
+    for iso_code in country_codes:
+        dataset_code = SECURITY_COUNTRY_CODE_MAP.get(iso_code.upper())
+        if not dataset_code:
+            continue
+        for category in categories:
+            selectors.append(
+                RuleSelector(
+                    scope="country",
+                    code=dataset_code,
+                    item_category=category,
+                    reason_codes=(f"SEC_{iso_code.upper()}_LAGS",),
+                    layer_kind="security",
+                    applies_to_checked=False,
+                    badges=("100ml", "1L zip bag"),
+                    max_rules=1,
+                )
+            )
+    return selectors
+
+
 __all__ = [
     "RuleSelector",
     "CANONICAL_RULE_SELECTORS",
     "DEFAULT_LAYER_BY_SCOPE",
     "build_airline_selectors",
+    "build_security_selectors",
     "get_selectors",
 ]
 

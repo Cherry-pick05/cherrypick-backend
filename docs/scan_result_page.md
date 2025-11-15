@@ -137,7 +137,7 @@
 출력 JSON:
 {
   "max_wh": number|null,
-  "max_count": number|null,
+  "max_pieces": number|null,
   "max_volume_ml": number|null,
   "max_weight_kg": number|null,
   "steb_required": boolean|null,
