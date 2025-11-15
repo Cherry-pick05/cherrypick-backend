@@ -1,0 +1,23 @@
+{
+  "scope": "country",
+  "code": "CN",
+  "name": "China (CAAC Security)",
+  "rules": [
+    {
+      "item_category": "restricted_liquids",
+      "constraints": {
+        "carry_on_allowed": true,
+        "checked_allowed": true,
+        "max_container_ml": 100,
+        "max_total_bag_l": 1,
+        "bag_type": "transparent_ziplock",
+        "notes": [
+          "Liquids, gels, aerosols carried by departing or transit passengers must be in containers of 100 ml or less.",
+          "All containers must fit into a single, transparent, resealable 1 L bag."
+        ]
+      },
+      "severity": "warn"
+    }
+  ]
+}
+

@@ -167,9 +167,11 @@ class DecisionAccumulator:
             effect.record.item_rule.id,
             effect.layer,
             effect.record.rule_set.code,
+            effect.record.item_rule.item_category,
             effect.carry_status,
             effect.checked_status,
             tuple(sorted(effect.reason_codes)),
+            tuple(sorted(effect.constraints_used.items())),
         )
         if trace_key in self._trace_keys:
             return
@@ -339,6 +341,7 @@ class RuleEngine:
         applies_to_checked = record.selector.applies_to_checked
 
         if record.selector.layer_kind == "security":
+            applies_to_checked = False
             checked_status = "allow"
         if record.selector.layer_kind == "airline":
             if record.item_rule.item_category == "carry_on":
@@ -350,21 +353,16 @@ class RuleEngine:
                 checked_status = "allow"
                 applies_to_carry_on = False
 
-        if not applies_to_carry_on:
-            carry_status = carry_status or "allow"
-        if not applies_to_checked:
-            checked_status = checked_status or "allow"
-
         carry_badges = set(record.selector.badges) if applies_to_carry_on else set()
         checked_badges = set(record.selector.badges) if applies_to_checked else set()
         conditions = extract_conditions(constraint, record.selector, ctx)
-        expose_conditions = True
+        expose_conditions = record.selector.layer_kind != "airline"
 
         return RuleEffect(
             selector=record.selector,
             record=record,
-            carry_status=carry_status,
-            checked_status=checked_status,
+            carry_status=carry_status or "allow",
+            checked_status=checked_status or "allow",
             carry_badges=carry_badges,
             checked_badges=checked_badges,
             reason_codes=reason,
@@ -431,6 +429,8 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
         set_condition("max_total_bag_l", total)
         if security_layer and total <= 1.0:
             conditions["zip_bag_1l"] = True
+    if constraint.max_total_cm is not None:
+        set_condition("size_sum_cm", int(constraint.max_total_cm))
     if constraint.lithium_ion_max_wh is not None:
         set_condition("max_wh", int(constraint.lithium_ion_max_wh))
     if constraint.max_pieces is not None:

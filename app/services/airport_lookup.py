@@ -89,7 +89,7 @@ def get_country_code(iata_code: str) -> Optional[str]:
     info = get_airport_info(iata_code)
     if not info:
         return None
-    return info.get("iso_country")
+    return info.get("iso_country") or info.get("country")
 
 
 def get_region_bucket(iata_code: str) -> Optional[str]:
