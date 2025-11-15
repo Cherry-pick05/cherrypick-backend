@@ -12,8 +12,16 @@ from sqlalchemy.orm import Session
 from app.db.models import RegulationMatch
 from app.db.session import get_db
 from app.schemas.decision import RuleEngineRequest, RuleEngineResponse
+from app.schemas.preview import (
+    NarrationPayload,
+    PreviewRequest,
+    PreviewResponse,
+    ResolvedInfo,
+    make_rule_request,
+)
 from app.services.ai_tips import generate_ai_tips
 from app.services.item_classifier import ClassificationResult, classify_label
+from app.services.narration import build_narration
 from app.services.rule_engine import RuleEngine
 
 router = APIRouter(prefix="/items", tags=["items"])
@@ -74,6 +82,39 @@ def decide_item(req: RuleEngineRequest, db: Session = Depends(get_db)) -> RuleEn
     result = engine.evaluate(req)
     result.ai_tips = generate_ai_tips(req, result)
     return result
+
+
+@router.post("/preview", response_model=PreviewResponse, status_code=status.HTTP_200_OK)
+def preview_item(req: PreviewRequest, db: Session = Depends(get_db)) -> PreviewResponse:
+    label = req.label.strip()
+    if not label:
+        raise HTTPException(status_code=400, detail="label must not be empty")
+
+    classification = classify_label(label, locale=req.locale)
+    resolved = ResolvedInfo(
+        label=label,
+        canonical=classification.canonical,
+        locale=req.locale,
+    )
+
+    if classification.abstain or not classification.canonical:
+        return PreviewResponse(state="needs_review", resolved=resolved)
+
+    req_id = req.req_id or uuid.uuid4().hex
+    engine_req = make_rule_request(classification.canonical, req_id, req)
+    engine = RuleEngine(db)
+    engine_response = engine.evaluate(engine_req)
+    engine_response.ai_tips = generate_ai_tips(engine_req, engine_response)
+
+    narration = build_narration(req, classification, engine_response)
+
+    return PreviewResponse(
+        state="complete",
+        resolved=resolved,
+        engine=engine_response,
+        narration=narration,
+        ai_tips=engine_response.ai_tips,
+    )
 
 
 def _persist_match(db: Session, req_id: str, result: ClassificationResult) -> None:
