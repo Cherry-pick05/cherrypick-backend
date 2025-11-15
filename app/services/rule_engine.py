@@ -43,7 +43,6 @@ MIN_CONDITION_KEYS = {
 }
 BOOL_CONDITION_KEYS = {
     "airline_approval",
-    "steb_required",
     "zip_bag_1l",
 }
 
@@ -124,8 +123,6 @@ class ItineraryContext:
             return False
         return iso_code.upper() in self._security_country_set
 
-    def should_enforce_steb(self, layer_kind: str | None) -> bool:
-        return bool(self.duty_free.is_df and self.rescreening and layer_kind == "security")
 
 
 @dataclass(slots=True)
@@ -424,7 +421,6 @@ def compute_status(flag: int | None, severity: str, constraint: ConstraintsQuant
 def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx: ItineraryContext) -> dict[str, Any]:
     conditions: dict[str, Any] = {}
     security_layer = selector.layer_kind == "security"
-    enforce_steb = ctx.should_enforce_steb(selector.layer_kind)
 
     def set_condition(key: str, value: Any) -> None:
         if value is None:
@@ -467,17 +463,8 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
     if security_layer and isinstance(bag_type, str) and "zip" in bag_type.lower():
         conditions["zip_bag_1l"] = True
 
-    intl_exc = ext.get("international_connection_exception")
-    if enforce_steb and isinstance(intl_exc, dict) and intl_exc.get("steb_required"):
-        conditions["steb_required"] = True
-    elif enforce_steb and ext.get("steb_required"):
-        conditions["steb_required"] = True
-
     if "max_spare_batteries" in ext and ext["max_spare_batteries"] is not None:
         set_condition("max_pieces", int(ext["max_spare_batteries"]))
-
-    if selector.layer_kind == "security" and "steb_required" not in conditions:
-        conditions["steb_required"] = False
 
     return conditions
 

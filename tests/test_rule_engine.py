@@ -62,7 +62,6 @@ def test_cosmetics_liquid_merges_security_and_airline(db_session: Session) -> No
         "max_container_ml": 100,
         "max_total_bag_l": 1.0,
         "zip_bag_1l": True,
-        "steb_required": False,
     }
     assert [(source.layer, source.code) for source in result.sources] == [
         ("country_security", "KR"),
