@@ -23,10 +23,12 @@ def build_narration(
 ) -> NarrationPayload:
     carry = engine.decision.carry_on
     checked = engine.decision.checked
+    carry_conditions = engine.conditions.get("carry_on", {})
+    checked_conditions = engine.conditions.get("checked", {})
     title = _title_for(classification, preview)
-    carry_card = _card_for(carry, engine.conditions)
-    checked_card = _card_for(checked, engine.conditions, checked=True)
-    bullets = _build_bullets(engine)
+    carry_card = _card_for(carry, carry_conditions)
+    checked_card = _card_for(checked, checked_conditions, checked=True)
+    bullets = _build_bullets(carry_conditions, checked_conditions, carry.badges)
     badges = sorted(set(carry.badges))
     sources = _summarize_sources(engine)
     footnote = "세관/검역 규정은 별도 적용될 수 있습니다."
@@ -54,8 +56,10 @@ def _card_for(slot: DecisionSlot, conditions: dict[str, object], *, checked: boo
     if slot.status == "deny":
         reason = "규정상 허용되지 않습니다."
     elif slot.status == "limit":
-        if _is_lag_condition(conditions):
+        if not checked and _is_lag_condition(conditions):
             reason = "100ml 이하 용기만 1L 지퍼백으로 반입"
+        elif checked and _has_md_limits(conditions):
+            reason = "용기 500ml 이하, 총 2L, 압력캡 필요"
         elif checked:
             reason = "위탁 가능(항공사·위험물 한도 내)"
         else:
@@ -69,24 +73,30 @@ def _is_lag_condition(conditions: dict[str, object]) -> bool:
     return conditions.get("max_container_ml") == 100 and conditions.get("zip_bag_1l") is True
 
 
-def _build_bullets(engine: RuleEngineResponse) -> list[str]:
+def _has_md_limits(conditions: dict[str, object]) -> bool:
+    return "md_per_container_ml" in conditions or "md_total_ml" in conditions
+
+
+def _build_bullets(
+    carry_conditions: dict[str, object],
+    checked_conditions: dict[str, object],
+    carry_badges: Iterable[str],
+) -> list[str]:
     bullets: list[str] = []
-    conditions = engine.conditions
-    if _is_lag_condition(conditions):
+    if _is_lag_condition(carry_conditions):
         bullets.append("보안: 100ml 이하만, 1L 지퍼백 1개 필요")
-    if "md_per_container_ml" in conditions or "md_total_ml" in conditions:
-        per_ml = int(conditions.get("md_per_container_ml", 0))
-        total_ml = int(conditions.get("md_total_ml", 0))
+    if _has_md_limits(checked_conditions):
+        per_ml = int(checked_conditions.get("md_per_container_ml", 0))
+        total_ml = int(checked_conditions.get("md_total_ml", 0))
         parts = []
         if per_ml:
             parts.append(f"용기 {per_ml}ml 이하")
         if total_ml:
             parts.append(f"총 {total_ml}ml 한도")
         bullets.append("에어로졸: " + ", ".join(parts))
-    carry_badges = engine.decision.carry_on.badges
-    carry_parts = [b for b in carry_badges if b.endswith(("pc", "kg", "cm"))]
-    if carry_parts:
-        bullets.append("기내 한도: " + " · ".join(carry_parts))
+    limits = [b for b in carry_badges if b.endswith(("pc", "kg", "cm"))]
+    if limits:
+        bullets.append("기내 한도: " + " · ".join(limits))
     return bullets[:3]
 
 

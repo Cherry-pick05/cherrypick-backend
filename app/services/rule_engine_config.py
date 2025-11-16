@@ -83,7 +83,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
             layer_kind="security",
             applies_to_checked=False,
             requires_security_country=("KR",),
-            badges=("100ml", "Pressure cap"),
+            badges=("100ml", "1L zip bag"),
         ),
         RuleSelector(
             scope="country",

@@ -59,11 +59,12 @@ def test_cosmetics_liquid_merges_security_and_airline(db_session: Session) -> No
 
     result = engine.evaluate(payload)
 
-    assert result.conditions == {
+    assert result.conditions["carry_on"] == {
         "max_container_ml": 100,
         "max_total_bag_l": 1.0,
         "zip_bag_1l": True,
     }
+    assert result.conditions["checked"] == {}
     assert [(source.layer, source.code) for source in result.sources] == [
         ("country_security", "KR"),
         ("country_security", "CN"),
@@ -148,12 +149,12 @@ def test_aerosol_uses_dg_limits_when_no_security(db_session: Session) -> None:
 
     result = engine.evaluate(payload)
 
-    assert "max_container_ml" not in result.conditions
-    assert result.conditions["max_total_bag_l"] == 2.0
-    assert result.conditions["md_per_container_ml"] == 500
-    assert result.conditions["md_total_ml"] == 2000
-    assert result.conditions["pressure_cap_required"] is True
-    assert "DG_PSAFE_AEROSOL_MD" in result.decision.carry_on.reason_codes
+    assert "max_container_ml" not in result.conditions["carry_on"]
+    checked_conditions = result.conditions["checked"]
+    assert checked_conditions["md_per_container_ml"] == 500
+    assert checked_conditions["md_total_ml"] == 2000
+    assert checked_conditions["pressure_cap_required"] is True
+    assert "DG_PSAFE_AEROSOL_MD" in result.decision.checked.reason_codes
     assert [(source.layer, source.code) for source in result.sources] == [
         ("dangerous_goods", "US_PACKSAFE_MD")
     ]
@@ -182,6 +183,10 @@ def test_aerosol_with_rescreening_includes_cn_security(db_session: Session) -> N
         ("country_security", "CN"),
         ("dangerous_goods", "US_PACKSAFE_MD"),
     ]
+    assert result.decision.carry_on.status == "deny"
+    assert result.decision.checked.status in ("allow", "limit")
+    assert "500ml" in result.decision.checked.badges
+    assert "Pressure cap" in result.decision.checked.badges
     assert result.decision.carry_on.status == "deny"
     assert result.decision.checked.status in ("allow", "limit")
     assert "500ml" in result.decision.checked.badges

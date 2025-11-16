@@ -53,6 +53,14 @@ def generate_ai_tips(
     return tips
 
 
+def _carry_conditions(response: RuleEngineResponse) -> dict:
+    return response.conditions.get("carry_on", {})
+
+
+def _checked_conditions(response: RuleEngineResponse) -> dict:
+    return response.conditions.get("checked", {})
+
+
 def _carry_status(response: RuleEngineResponse) -> str:
     return response.decision.carry_on.status
 
@@ -114,7 +122,7 @@ TIP_RULES: tuple[TipRule, ...] = (
         id="tip.split_100ml",
         tags=("액체류", "기내"),
         relevance=0.95,
-    predicate=lambda req, resp: resp.conditions.get("max_container_ml") == 100
+    predicate=lambda req, resp: _carry_conditions(resp).get("max_container_ml") == 100
     and (req.item_params.volume_ml or 0) > 100,
         builder=_split_volume_text,
     ),
@@ -122,8 +130,8 @@ TIP_RULES: tuple[TipRule, ...] = (
         id="tip.zip_bag",
         tags=("보안절차",),
         relevance=0.9,
-        predicate=lambda _req, resp: resp.conditions.get("max_container_ml") == 100
-        and resp.conditions.get("zip_bag_1l"),
+        predicate=lambda _req, resp: _carry_conditions(resp).get("max_container_ml") == 100
+        and _carry_conditions(resp).get("zip_bag_1l"),
         builder=_tip_text("액체는 1L 투명 지퍼백에 따로 넣어 보안대에서 한 번에 꺼낼 수 있게 하세요."),
     ),
     TipRule(

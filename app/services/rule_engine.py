@@ -33,6 +33,7 @@ DecisionStatus = Literal["allow", "limit", "deny"]
 
 # Ordered severity for carry-on / checked determination
 STATUS_ORDER: dict[str, int] = {"deny": 3, "limit": 2, "allow": 1}
+CARRY_BADGE_WHITELIST = {"100ml", "1L zip bag", "1pc", "10kg", "115cm"}
 MIN_CONDITION_KEYS = {
     "max_container_ml",
     "max_total_bag_l",
@@ -157,7 +158,11 @@ class DecisionAccumulator:
         self.checked_badges: set[str] = set()
         self.carry_reasons: list[str] = []
         self.checked_reasons: list[str] = []
-        self.conditions: dict[str, Any] = {}
+        self.conditions: dict[str, dict[str, Any]] = {
+            "carry_on": {},
+            "checked": {},
+            "common": {},
+        }
         self.trace: list[TraceEntry] = []
         self._trace_keys: set[tuple] = set()
         self._sources_meta: dict[tuple[str, str], tuple[SourceEntry, str | None]] = {}
@@ -180,17 +185,26 @@ class DecisionAccumulator:
         if effect.applies_to_carry_on:
             self.carry_status = self._merge_status(self.carry_status, effect.carry_status or "allow")
             self.carry_badges.update(effect.carry_badges)
-            self.carry_badges.update(_badges_from_constraints(effect.constraints_used))
+            self.carry_badges.update(_badges_from_constraints(effect.constraints_used, "carry_on"))
             self._extend_unique(self.carry_reasons, effect.reason_codes)
         if effect.applies_to_checked:
             self.checked_status = self._merge_status(self.checked_status, effect.checked_status or "allow")
             self.checked_badges.update(effect.checked_badges)
-            self.checked_badges.update(_badges_from_constraints(effect.constraints_used))
+            self.checked_badges.update(_badges_from_constraints(effect.constraints_used, "checked"))
             self._extend_unique(self.checked_reasons, effect.reason_codes)
+
+        scopes: list[str] = []
+        if effect.applies_to_carry_on:
+            scopes.append("carry_on")
+        if effect.applies_to_checked:
+            scopes.append("checked")
+        if not scopes:
+            scopes.append("common")
 
         if effect.expose_conditions:
             for key, value in effect.constraints_used.items():
-                self._merge_condition(key, value)
+                for scope in scopes:
+                    self._merge_condition(scope, key, value)
 
         source_key = (effect.layer, effect.record.rule_set.code)
         if source_key not in self._sources_meta:
@@ -223,22 +237,26 @@ class DecisionAccumulator:
             if item not in target:
                 target.append(item)
 
-    def _merge_condition(self, key: str, value: Any) -> None:
+    def _merge_condition(self, scope: str, key: str, value: Any) -> None:
+        if scope == "carry_on" and key in {"md_per_container_ml", "md_total_ml", "pressure_cap_required"}:
+            return
         if value is None:
             return
+        bucket = self.conditions.setdefault(scope, {})
         if key in MIN_CONDITION_KEYS:
-            current = self.conditions.get(key)
+            current = bucket.get(key)
             if current is None or (isinstance(current, (int, float)) and value < current):
-                self.conditions[key] = value
+                bucket[key] = value
         elif key in BOOL_CONDITION_KEYS:
-            if value:
-                self.conditions[key] = True
-            else:
-                self.conditions.setdefault(key, False)
+            bucket[key] = bool(value)
         else:
-            self.conditions[key] = value
+            bucket[key] = value
 
     def build_response(self) -> RuleEngineResponse:
+        carry_badges = sorted(set(self.carry_badges) & CARRY_BADGE_WHITELIST)
+        checked_badges = sorted(set(self.checked_badges))
+        carry_reasons = normalize_reason_codes(self.carry_reasons)
+        checked_reasons = normalize_reason_codes(self.checked_reasons)
         sorted_sources = [
             entry
             for entry, _ in sorted(
@@ -246,22 +264,27 @@ class DecisionAccumulator:
                 key=lambda item: _source_sort_key(item, self.ctx),
             )
         ]
+        conditions = {
+            key: value for key, value in self.conditions.items() if value
+        }
+        for scope in ("carry_on", "checked", "common"):
+            conditions.setdefault(scope, {})
         return RuleEngineResponse(
             req_id=self.req_id,
             canonical=self.canonical,
             decision=DecisionPayload(
                 carry_on=DecisionSlot(
                     status=self.carry_status,
-                    badges=sorted(self.carry_badges),
-                    reason_codes=sorted(set(self.carry_reasons)),
+                    badges=carry_badges,
+                    reason_codes=carry_reasons,
                 ),
                 checked=DecisionSlot(
                     status=self.checked_status,
-                    badges=sorted(self.checked_badges),
-                    reason_codes=sorted(set(self.checked_reasons)),
+                    badges=checked_badges,
+                    reason_codes=checked_reasons,
                 ),
             ),
-            conditions=self.conditions,
+            conditions=conditions,
             sources=sorted_sources,
             trace=self.trace,
         )
@@ -550,15 +573,15 @@ def _select_best_records(records: Sequence[RuleRecord], ctx: ItineraryContext) -
     return best_records
 
 
-def _badges_from_constraints(constraints: dict[str, Any]) -> list[str]:
+def _badges_from_constraints(constraints: dict[str, Any], scope: str) -> list[str]:
     badges: set[str] = set()
     max_container = constraints.get("max_container_ml")
-    if isinstance(max_container, (int, float)) and max_container > 0:
+    if scope == "carry_on" and isinstance(max_container, (int, float)) and max_container > 0:
         badges.add(f"{int(max_container)}ml")
-    if constraints.get("zip_bag_1l"):
+    if scope == "carry_on" and constraints.get("zip_bag_1l"):
         badges.add("1L zip bag")
     max_total_l = constraints.get("max_total_bag_l")
-    if isinstance(max_total_l, (int, float)) and max_total_l < 1.0 and "1L zip bag" not in badges:
+    if scope == "carry_on" and isinstance(max_total_l, (int, float)) and max_total_l < 1.0 and "1L zip bag" not in badges:
         badges.add("1L bag")
     max_pieces = constraints.get("max_pieces")
     if isinstance(max_pieces, (int, float)) and max_pieces > 0:
@@ -575,15 +598,16 @@ def _badges_from_constraints(constraints: dict[str, Any]) -> list[str]:
         badges.add(f"{int(max_wh)}Wh")
     if constraints.get("airline_approval"):
         badges.add("Airline approval")
-    md_per = constraints.get("md_per_container_ml")
-    if isinstance(md_per, (int, float)) and md_per > 0:
-        badges.add(f"{int(md_per)}ml")
-    md_total = constraints.get("md_total_ml")
-    if isinstance(md_total, (int, float)) and md_total > 0:
-        litres = md_total / 1000
-        badges.add(f"{litres:.0f}L total" if litres.is_integer() else f"{litres:.1f}L total")
-    if constraints.get("pressure_cap_required"):
-        badges.add("Pressure cap")
+    if scope == "checked":
+        md_per = constraints.get("md_per_container_ml")
+        if isinstance(md_per, (int, float)) and md_per > 0:
+            badges.add(f"{int(md_per)}ml")
+        md_total = constraints.get("md_total_ml")
+        if isinstance(md_total, (int, float)) and md_total > 0:
+            litres = md_total / 1000
+            badges.add(f"{litres:.0f}L total" if litres.is_integer() else f"{litres:.1f}L total")
+        if constraints.get("pressure_cap_required"):
+            badges.add("Pressure cap")
     return sorted(badges)
 
 
@@ -608,6 +632,13 @@ def _source_sort_key(meta: tuple[SourceEntry, str | None], ctx: ItineraryContext
     else:
         security_rank = 0
     return (kind_rank, security_rank, entry.layer, entry.code)
+
+
+def normalize_reason_codes(codes: Iterable[str]) -> list[str]:
+    mapping = {
+        "SEC_KR_AEROSOL": "SEC_KR_LAGS",
+    }
+    return sorted({mapping.get(code, code) for code in codes})
 
 
 __all__ = ["RuleEngine"]
