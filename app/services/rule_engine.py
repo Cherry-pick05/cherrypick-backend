@@ -40,6 +40,8 @@ MIN_CONDITION_KEYS = {
     "max_pieces",
     "max_weight_kg",
     "size_sum_cm",
+    "md_per_container_ml",
+    "md_total_ml",
 }
 BOOL_CONDITION_KEYS = {
     "airline_approval",
@@ -465,6 +467,18 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
 
     if "max_spare_batteries" in ext and ext["max_spare_batteries"] is not None:
         set_condition("max_pieces", int(ext["max_spare_batteries"]))
+
+    if "max_container_kg" in ext and ext["max_container_kg"] is not None:
+        per_ml = int(float(ext["max_container_kg"]) * 1000)
+        set_condition("md_per_container_ml", per_ml)
+    if "max_total_bag_kg" in ext and ext["max_total_bag_kg"] is not None:
+        total_ml = int(float(ext["max_total_bag_kg"]) * 1000)
+        set_condition("md_total_ml", total_ml)
+    if "checked_spray_limit_per_item_ml" in ext and ext["checked_spray_limit_per_item_ml"] is not None:
+        set_condition("md_per_container_ml", int(ext["checked_spray_limit_per_item_ml"]))
+    if "checked_spray_total_limit_l" in ext and ext["checked_spray_total_limit_l"] is not None:
+        total_ml = int(float(ext["checked_spray_total_limit_l"]) * 1000)
+        set_condition("md_total_ml", total_ml)
 
     return conditions
 

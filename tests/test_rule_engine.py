@@ -148,15 +148,39 @@ def test_aerosol_uses_dg_limits_when_no_security(db_session: Session) -> None:
 
     result = engine.evaluate(payload)
 
-    assert result.conditions["max_container_ml"] == 500
+    assert result.conditions["max_container_ml"] == 100
     assert result.conditions["max_total_bag_l"] == 2.0
-    assert "DG_US_AEROSOL_FLAMMABLE" in result.decision.carry_on.reason_codes
+    assert result.conditions["md_per_container_ml"] == 500
+    assert result.conditions["md_total_ml"] == 2000
+    assert "DG_US_MD_AEROSOL_LIMIT" in result.decision.carry_on.reason_codes
     assert [(source.layer, source.code) for source in result.sources] == [
         ("dangerous_goods", "US_PACKSAFE_MD")
     ]
 
     tips = generate_ai_tips(payload, result)
     assert "tip.aerosol_cap" in {tip.id for tip in tips}
+
+
+def test_aerosol_with_rescreening_includes_cn_security(db_session: Session) -> None:
+    _seed_security_rule(db_session, code="KR")
+    _seed_security_rule(db_session, code="CN")
+    _seed_pack_safe_aerosol_rule(db_session)
+
+    engine = RuleEngine(db_session)
+    payload = RuleEngineRequest(
+        canonical="aerosol",
+        req_id="test-aerosol-sec",
+        itinerary={"from": "ICN", "to": "LAX", "via": ["PVG"], "rescreening": True},
+        segments=[],
+        item_params={"volume_ml": 350},
+    )
+
+    result = engine.evaluate(payload)
+    assert [(source.layer, source.code) for source in result.sources] == [
+        ("country_security", "KR"),
+        ("country_security", "CN"),
+        ("dangerous_goods", "US_PACKSAFE_MD"),
+    ]
 
 
 def test_lithium_spare_denies_checked_baggage(db_session: Session) -> None:
@@ -270,7 +294,7 @@ def _seed_pack_safe_aerosol_rule(session: Session) -> None:
         rule_set_id=rule_set.id,
         item_category="tsa_restriction",
         severity="warn",
-        item_name="Aerosols, Flammable",
+        item_name="Medical & Toiletry Articles",
     )
     session.add(item_rule)
     session.flush()
@@ -280,11 +304,11 @@ def _seed_pack_safe_aerosol_rule(session: Session) -> None:
     constraint = ConstraintsQuant(
         id=_next_id(),
         applicability_id=app.id,
-        max_container_ml=500,
+        max_container_ml=100,
         max_total_bag_l=2.0,
         carry_on_allowed=1,
         checked_allowed=1,
-        ext={},
+        ext={"max_container_kg": 0.5, "max_total_bag_kg": 2},
     )
     session.add(constraint)
     session.commit()

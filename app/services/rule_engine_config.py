@@ -50,6 +50,7 @@ DEFAULT_LAYER_BY_SCOPE: dict[str, LayerName] = {
 
 SECURITY_CANONICALS: dict[str, tuple[str, ...]] = {
     "cosmetics_liquid": ("restricted_liquids",),
+    "aerosol": ("restricted_liquids",),
 }
 
 SECURITY_COUNTRY_CODE_MAP: dict[str, str] = {
@@ -86,29 +87,12 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
-            item_name_contains=("Hair Spray",),
-            reason_codes=("SEC_US_AEROSOL",),
-            layer_kind="security",
-            applies_to_checked=False,
-            requires_security_country=("US",),
-            badges=("3-1-1",),
-        ),
-        RuleSelector(
-            scope="country",
             code="US_PACKSAFE_MD",
-            item_name_contains=("Aerosols, Flammable",),
-            reason_codes=("DG_US_AEROSOL_FLAMMABLE",),
+            item_name_contains=("Medical & Toiletry Articles",),
+            reason_codes=("DG_US_MD_AEROSOL_LIMIT",),
             layer="dangerous_goods",
             layer_kind="dangerous_goods",
-        ),
-        RuleSelector(
-            scope="country",
-            code="US_PACKSAFE_MD",
-            item_name_contains=("Aerosols, Nonflammable",),
-            reason_codes=("DG_US_AEROSOL_NONFLAM",),
-            layer="dangerous_goods",
-            layer_kind="dangerous_goods",
+            badges=("500ml", "2L total"),
         ),
     ),
     "alcohol_beverage": (
