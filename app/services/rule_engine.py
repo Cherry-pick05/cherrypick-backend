@@ -353,6 +353,10 @@ class RuleEngine:
         if record.selector.layer_kind == "security":
             applies_to_checked = False
             checked_status = "allow"
+            max_ml = record.constraint.max_container_ml
+            volume = ctx.item_params.volume_ml
+            if max_ml and volume and volume > max_ml:
+                carry_status = "deny"
         if record.selector.layer_kind == "airline":
             if record.item_rule.item_category == "carry_on":
                 carry_status = "limit"
@@ -480,6 +484,13 @@ def extract_conditions(constraint: ConstraintsQuant, selector: RuleSelector, ctx
         total_ml = int(float(ext["checked_spray_total_limit_l"]) * 1000)
         set_condition("md_total_ml", total_ml)
 
+    if selector.layer_kind == "dangerous_goods" and any(
+        code in selector.reason_codes for code in ("DG_PSAFE_AEROSOL_MD",)
+    ):
+        conditions.pop("max_container_ml", None)
+        conditions.pop("zip_bag_1l", None)
+        conditions["pressure_cap_required"] = True
+
     return conditions
 
 
@@ -562,10 +573,17 @@ def _badges_from_constraints(constraints: dict[str, Any]) -> list[str]:
     max_wh = constraints.get("max_wh")
     if isinstance(max_wh, (int, float)) and max_wh > 0:
         badges.add(f"{int(max_wh)}Wh")
-    if constraints.get("steb_required"):
-        badges.add("STEB sealed")
     if constraints.get("airline_approval"):
         badges.add("Airline approval")
+    md_per = constraints.get("md_per_container_ml")
+    if isinstance(md_per, (int, float)) and md_per > 0:
+        badges.add(f"{int(md_per)}ml")
+    md_total = constraints.get("md_total_ml")
+    if isinstance(md_total, (int, float)) and md_total > 0:
+        litres = md_total / 1000
+        badges.add(f"{litres:.0f}L total" if litres.is_integer() else f"{litres:.1f}L total")
+    if constraints.get("pressure_cap_required"):
+        badges.add("Pressure cap")
     return sorted(badges)
 
 

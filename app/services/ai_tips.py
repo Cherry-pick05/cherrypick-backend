@@ -114,9 +114,8 @@ TIP_RULES: tuple[TipRule, ...] = (
         id="tip.split_100ml",
         tags=("액체류", "기내"),
         relevance=0.95,
-        predicate=lambda req, resp: resp.conditions.get("max_container_ml") == 100
-        and _carry_status(resp) != "deny"
-        and (req.item_params.volume_ml or 0) > 100,
+    predicate=lambda req, resp: resp.conditions.get("max_container_ml") == 100
+    and (req.item_params.volume_ml or 0) > 100,
         builder=_split_volume_text,
     ),
     TipRule(
@@ -131,7 +130,7 @@ TIP_RULES: tuple[TipRule, ...] = (
         id="tip.rescreen",
         tags=("경유", "보안절차"),
         relevance=0.85,
-        predicate=lambda req, resp: req.itinerary.rescreening and _carry_status(resp) != "deny",
+        predicate=lambda req, _resp: req.itinerary.rescreening,
         builder=_rescreen_text,
     ),
     TipRule(

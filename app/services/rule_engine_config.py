@@ -89,10 +89,10 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
             scope="country",
             code="US_PACKSAFE_MD",
             item_name_contains=("Medical & Toiletry Articles",),
-            reason_codes=("DG_US_MD_AEROSOL_LIMIT",),
+            reason_codes=("DG_PSAFE_AEROSOL_MD",),
             layer="dangerous_goods",
             layer_kind="dangerous_goods",
-            badges=("500ml", "2L total"),
+            badges=("500ml", "2L total", "Pressure cap"),
         ),
     ),
     "alcohol_beverage": (
