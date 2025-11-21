@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 from functools import lru_cache
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from airportsdata import load
+
+from app.core.cache import get_redis
+from sqlalchemy.orm import Session
+
+from app.db.session import SessionLocal
+from app.services.airport_directory import AirportDirectoryService, DIRECTORY_VERSION_KEY
 
 # ISO 3166-1 alpha-2 codes considered part of the Americas region for baggage policy
 # segmentation (North, Central, South America + Caribbean).
@@ -67,20 +74,28 @@ AMERICAS_ISO2 = {
     "VI",
 }
 
+logger = logging.getLogger(__name__)
 
-@lru_cache(maxsize=1)
-def _airport_index() -> Dict[str, Dict[str, Any]]:
-    """Load the IATA airport dataset once per process."""
-
-    return load("IATA")
+_PROCESS_CACHE: Dict[str, Any] = {"version": None, "index": {}}
+_SESSION_FACTORY: Callable[[], Session] = SessionLocal
 
 
 def get_airport_info(iata_code: str) -> Optional[Dict[str, Any]]:
-    """Return the dataset entry for a given IATA airport code."""
+    """Return the directory entry (DB → Redis cache) for a given IATA airport code."""
 
     if not iata_code:
         return None
-    return _airport_index().get(iata_code.upper())
+    code = iata_code.strip().upper()
+    if len(code) != 3:
+        return None
+
+    index = _load_directory_index()
+    record = index.get(code)
+    if record:
+        return record
+
+    # Fallback to bundled airportsdata dataset
+    return _airportsdata_index().get(code)
 
 
 def get_country_code(iata_code: str) -> Optional[str]:
@@ -89,7 +104,10 @@ def get_country_code(iata_code: str) -> Optional[str]:
     info = get_airport_info(iata_code)
     if not info:
         return None
-    return info.get("iso_country") or info.get("country")
+    country = info.get("country_code") or info.get("iso_country") or info.get("country")
+    if not country:
+        return None
+    return str(country).upper()
 
 
 def get_region_bucket(iata_code: str) -> Optional[str]:
@@ -106,9 +124,61 @@ def get_region_bucket(iata_code: str) -> Optional[str]:
     return "international_non_americas"
 
 
+def _load_directory_index() -> Dict[str, Dict[str, Any]]:
+    version = _directory_version()
+    cached_version = _PROCESS_CACHE.get("version")
+    if cached_version == version and _PROCESS_CACHE.get("index"):
+        return _PROCESS_CACHE["index"]
+
+    try:
+        with _SESSION_FACTORY() as db:
+            service = AirportDirectoryService(db)
+            index = service.as_index()
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        logger.warning("공항 디렉터리 조회 실패, 내장 데이터셋으로 대체합니다: %s", exc)
+        _PROCESS_CACHE["version"] = None
+        _PROCESS_CACHE["index"] = {}
+        return {}
+
+    normalized = {code.upper(): data for code, data in index.items()}
+    _PROCESS_CACHE["version"] = version
+    _PROCESS_CACHE["index"] = normalized
+    return normalized
+
+
+def _directory_version() -> str:
+    try:
+        value = get_redis().get(DIRECTORY_VERSION_KEY)
+        return value or "0"
+    except Exception:  # pragma: no cover - Redis가 없을 때
+        return "0"
+
+
+@lru_cache(maxsize=1)
+def _airportsdata_index() -> Dict[str, Dict[str, Any]]:
+    """Load the bundled airportsdata dataset once per process."""
+
+    return load("IATA")
+
+
+def set_airport_directory_session_factory(factory: Callable[[], Session]) -> None:
+    """테스트나 백그라운드 작업에서 별도의 세션 팩토리를 주입할 때 사용."""
+
+    global _SESSION_FACTORY
+    _SESSION_FACTORY = factory
+    _PROCESS_CACHE["version"] = None
+    _PROCESS_CACHE["index"] = {}
+
+
+def reset_airport_directory_session_factory() -> None:
+    set_airport_directory_session_factory(SessionLocal)
+
+
 __all__ = [
     "get_airport_info",
     "get_country_code",
     "get_region_bucket",
+    "set_airport_directory_session_factory",
+    "reset_airport_directory_session_factory",
 ]
 

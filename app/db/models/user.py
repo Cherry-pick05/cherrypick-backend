@@ -1,16 +1,17 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import TIMESTAMP, String, BigInteger, JSON, func
+from sqlalchemy import TIMESTAMP, String, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
+from app.db.types import BIGINT
 
 
 class User(Base):
     __tablename__ = "users"
 
-    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True)
     device_uuid: Mapped[str | None] = mapped_column(String(36), unique=True)
     name: Mapped[str | None] = mapped_column(String(100))
     locale: Mapped[str | None] = mapped_column(String(10))

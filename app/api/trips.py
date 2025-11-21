@@ -5,7 +5,7 @@ from app.api.deps import DeviceAuthContext, require_device_auth
 from app.db.models.trip import Trip
 from app.db.session import get_db
 from app.schemas.recommendation import TripRecommendationResponse
-from app.schemas.trip import TripCreate, TripDetail, TripItemsListResponse, TripListResponse, TripUpdate
+from app.schemas.trip import TripCreate, TripDetail, TripItemsListResponse, TripListResponse
 from app.services.recommendation import RecommendationService
 from app.services.trip_service import TripService, TripStatusFilter
 
@@ -47,11 +47,6 @@ def list_trip_items(
     service: TripService = Depends(get_trip_service),
 ) -> TripItemsListResponse:
     return service.list_trip_items(trip_id, limit, offset)
-
-
-@router.patch("/{trip_id}", response_model=TripDetail)
-def update_trip(trip_id: int, payload: TripUpdate, service: TripService = Depends(get_trip_service)) -> TripDetail:
-    return service.update_trip(trip_id, payload)
 
 
 @router.post("/{trip_id}/archive")

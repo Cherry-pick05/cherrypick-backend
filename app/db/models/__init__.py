@@ -1,4 +1,6 @@
 from app.db.models.device_recovery_code import DeviceRecoveryCode
+from app.db.models.airport import Airport
+from app.db.models.country import Country
 from app.db.models.item_image import ItemImage
 from app.db.models.regulation import (
     RegulationMatch,
@@ -22,6 +24,8 @@ __all__ = [
     "Trip",
     "TripSegment",
     "TripViaAirport",
+    "Country",
+    "Airport",
     "DeviceRecoveryCode",
     "UserConsent",
     "ItemImage",
