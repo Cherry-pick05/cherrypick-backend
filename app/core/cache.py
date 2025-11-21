@@ -2,6 +2,7 @@ import json
 from typing import Any, Callable, Optional
 
 import redis
+from redis.exceptions import RedisError
 
 from app.core.config import settings
 
@@ -18,11 +19,20 @@ def get_redis() -> redis.Redis:
 
 def cached_json(key: str, ttl_seconds: int, loader: Callable[[], Any]):
     r = get_redis()
-    cached = r.get(key)
+    try:
+        cached = r.get(key)
+    except RedisError:
+        cached = None
     if cached is not None:
-        return json.loads(cached)
+        try:
+            return json.loads(cached)
+        except json.JSONDecodeError:
+            pass
     data = loader()
-    r.setex(key, ttl_seconds, json.dumps(data))
+    try:
+        r.setex(key, ttl_seconds, json.dumps(data))
+    except RedisError:
+        pass
     return data
 
 

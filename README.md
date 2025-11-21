@@ -170,6 +170,11 @@ LLM_CLASSIFIER_CONFIDENCE_THRESHOLD=0.7
 # 외부 API
 WEATHER_API_KEY=your_openweather_api_key
 KOREAEXIM_API_KEY=your_koreaexim_authkey
+
+# 국토교통부 세계공항 데이터
+MOLIT_SERVICE_KEY=72e8af88c6a182885c860951dc2f997b312678d084836403dbd4b874b2e334cf
+MOLIT_AIRPORT_DATASET_ID=uddi:12f91d16-ea50-48d1-bdc3-df8410f22542
+MOLIT_AIRPORT_BASE_URL=https://api.odcloud.kr/api/3051587/v1
 ```
 
 ## 데이터베이스 마이그레이션
@@ -210,6 +215,8 @@ poetry run alembic upgrade head
 - `POST /v1/trips` - 여정 생성
 - `POST /v1/media/upload` - 이미지 업로드
 - `WS /v1/ws` - WebSocket 연결
+- `GET /v1/countries` - 국가 레퍼런스 목록(검색/지역 필터)
+- `GET /v1/airports` - 공항 레퍼런스 목록(검색/국가 필터)
 
 ## 프로젝트 구조
 
@@ -344,6 +351,16 @@ poetry run pytest
 ```bash
 poetry run python load_regulations.py
 ```
+
+### 세계 공항/국가 디렉터리 동기화
+
+국토교통부 세계 공항 데이터를 DB/캐시에 적재합니다.
+
+```bash
+poetry run python -m app.tasks.sync_airports --log-level INFO
+```
+
+동기화 후 `/v1/countries`, `/v1/airports` API가 최신 데이터를 참조하며, 여정 생성 시 국가/공항 자동 매핑에 활용됩니다.
 
 ## 참고 문서
 

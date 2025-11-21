@@ -319,7 +319,10 @@ class TripService:
             return None
         country = get_country_code(airport_code)
         if not country:
-            return None
+            raise HTTPException(
+                status_code=400,
+                detail={"code": "airport_not_found", "airport": airport_code},
+            )
         return country.upper()
 
     def _validate_date_range(self, trip: Trip) -> None:

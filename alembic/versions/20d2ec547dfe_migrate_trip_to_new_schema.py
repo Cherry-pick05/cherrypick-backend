@@ -47,31 +47,61 @@ def upgrade() -> None:
             ["trip_id", "via_order"],
         )
 
-    # Add new columns to trips table
-    op.add_column("trips", sa.Column("title", sa.String(length=200), nullable=True))
-    op.add_column("trips", sa.Column("note", sa.Text(), nullable=True))
-    op.add_column("trips", sa.Column("from_airport", sa.String(length=3), nullable=True))
-    op.add_column("trips", sa.Column("to_airport", sa.String(length=3), nullable=True))
-    op.add_column("trips", sa.Column("country_from", sa.String(length=2), nullable=True))
-    op.add_column("trips", sa.Column("country_to", sa.String(length=2), nullable=True))
-    op.add_column(
-        "trips",
-        sa.Column(
-            "route_type",
-            sa.Enum("domestic", "international", name="trip_route_type"),
-            nullable=True,
-        ),
-    )
-    op.add_column(
-        "trips",
-        sa.Column("active", sa.Boolean(), nullable=True, server_default=sa.false()),
-    )
-    op.add_column("trips", sa.Column("tags_json", mysql.JSON(), nullable=True))
-    op.add_column("trips", sa.Column("archived_at", sa.TIMESTAMP(), nullable=True))
+    # Add new columns to trips table (check if they exist first)
+    def column_exists(table_name: str, column_name: str) -> bool:
+        result = conn.execute(sa.text("""
+            SELECT COUNT(*) as cnt FROM information_schema.columns 
+            WHERE table_schema = DATABASE() 
+            AND table_name = :table_name 
+            AND column_name = :column_name
+        """), {"table_name": table_name, "column_name": column_name})
+        return result.fetchone()[0] > 0
 
-    # Create new indexes
-    op.create_index("ix_trips_active", "trips", ["user_id", "active"])
-    op.create_index("ix_trips_archived_at", "trips", ["user_id", "archived_at"])
+    if not column_exists("trips", "title"):
+        op.add_column("trips", sa.Column("title", sa.String(length=200), nullable=True))
+    if not column_exists("trips", "note"):
+        op.add_column("trips", sa.Column("note", sa.Text(), nullable=True))
+    if not column_exists("trips", "from_airport"):
+        op.add_column("trips", sa.Column("from_airport", sa.String(length=3), nullable=True))
+    if not column_exists("trips", "to_airport"):
+        op.add_column("trips", sa.Column("to_airport", sa.String(length=3), nullable=True))
+    if not column_exists("trips", "country_from"):
+        op.add_column("trips", sa.Column("country_from", sa.String(length=2), nullable=True))
+    if not column_exists("trips", "country_to"):
+        op.add_column("trips", sa.Column("country_to", sa.String(length=2), nullable=True))
+    if not column_exists("trips", "route_type"):
+        op.add_column(
+            "trips",
+            sa.Column(
+                "route_type",
+                sa.Enum("domestic", "international", name="trip_route_type"),
+                nullable=True,
+            ),
+        )
+    if not column_exists("trips", "active"):
+        op.add_column(
+            "trips",
+            sa.Column("active", sa.Boolean(), nullable=True, server_default=sa.false()),
+        )
+    if not column_exists("trips", "tags_json"):
+        op.add_column("trips", sa.Column("tags_json", mysql.JSON(), nullable=True))
+    if not column_exists("trips", "archived_at"):
+        op.add_column("trips", sa.Column("archived_at", sa.TIMESTAMP(), nullable=True))
+
+    # Create new indexes (check if they exist first)
+    def index_exists(table_name: str, index_name: str) -> bool:
+        result = conn.execute(sa.text("""
+            SELECT COUNT(*) as cnt FROM information_schema.statistics 
+            WHERE table_schema = DATABASE() 
+            AND table_name = :table_name 
+            AND index_name = :index_name
+        """), {"table_name": table_name, "index_name": index_name})
+        return result.fetchone()[0] > 0
+
+    if not index_exists("trips", "ix_trips_active"):
+        op.create_index("ix_trips_active", "trips", ["user_id", "active"])
+    if not index_exists("trips", "ix_trips_archived_at"):
+        op.create_index("ix_trips_archived_at", "trips", ["user_id", "archived_at"])
 
     # Drop old indexes
     result = conn.execute(sa.text("""
@@ -83,11 +113,15 @@ def upgrade() -> None:
     if result.fetchone()[0] > 0:
         op.drop_index("ix_trips_country_airline", table_name="trips")
 
-    # Drop old columns from trips table
-    op.drop_column("trips", "city")
-    op.drop_column("trips", "country_code2")
-    op.drop_column("trips", "airline_code")
-    op.drop_column("trips", "has_rescreening")
+    # Drop old columns from trips table (check if they exist first)
+    if column_exists("trips", "city"):
+        op.drop_column("trips", "city")
+    if column_exists("trips", "country_code2"):
+        op.drop_column("trips", "country_code2")
+    if column_exists("trips", "airline_code"):
+        op.drop_column("trips", "airline_code")
+    if column_exists("trips", "has_rescreening"):
+        op.drop_column("trips", "has_rescreening")
 
 
 def downgrade() -> None:

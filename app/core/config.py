@@ -69,6 +69,10 @@ class Settings(BaseSettings):
     koreaexim_default_data: str = "AP01"
     exchange_timeout_sec: float = 5.0
 
+    molit_service_key: str | None = None
+    molit_airport_dataset_id: str = "uddi:12f91d16-ea50-48d1-bdc3-df8410f22542"
+    molit_airport_base_url: str = "https://api.odcloud.kr/api/3051587/v1"
+
     safe_mode_default: bool = True
     supported_locales: list[str] = ["ko-KR", "en-US"]
     units_defaults: dict[str, str] = {"weight": "kg", "length": "cm"}
