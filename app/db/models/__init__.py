@@ -11,7 +11,7 @@ from app.db.models.regulation import (
     TaxonomySynonym,
     PrecedencePolicy,
 )
-from app.db.models.trip import Trip, TripSegment
+from app.db.models.trip import Trip, TripSegment, TripViaAirport
 from app.db.models.user import User
 from app.db.models.user_consent import UserConsent
 from app.db.base import Base
@@ -21,6 +21,7 @@ __all__ = [
     "User",
     "Trip",
     "TripSegment",
+    "TripViaAirport",
     "DeviceRecoveryCode",
     "UserConsent",
     "ItemImage",
