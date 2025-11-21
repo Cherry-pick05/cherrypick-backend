@@ -14,6 +14,8 @@ from app.schemas.trip import (
     ItinerarySnapshot,
     TripCreate,
     TripDetail,
+    TripItemListItem,
+    TripItemsListResponse,
     TripListItem,
     TripListResponse,
     TripSegmentInput,
@@ -101,6 +103,44 @@ class TripService:
     def get_trip_detail(self, trip_id: int) -> TripDetail:
         trip = self._get_trip_for_user(trip_id)
         return self._build_trip_detail(trip)
+
+    def list_trip_items(self, trip_id: int, limit: int, offset: int) -> TripItemsListResponse:
+        # Trip 소유권 확인
+        trip = self._get_trip_for_user(trip_id)
+
+        query = (
+            select(RegulationMatch)
+            .where(
+                RegulationMatch.trip_id == trip_id,
+                RegulationMatch.user_id == self.auth.user.user_id,
+            )
+            .order_by(desc(RegulationMatch.matched_at))
+            .offset(offset)
+            .limit(limit + 1)
+        )
+        rows = self.db.scalars(query).all()
+
+        has_more = len(rows) > limit
+        items = rows[:limit]
+
+        return TripItemsListResponse(
+            items=[
+                TripItemListItem(
+                    match_id=match.id,
+                    raw_label=match.raw_label,
+                    norm_label=match.norm_label,
+                    canonical_key=match.canonical_key,
+                    status=match.status,  # type: ignore[arg-type]
+                    confidence=float(match.confidence) if match.confidence else None,
+                    decided_by=match.decided_by,
+                    image_id=match.image_id,
+                    matched_at=match.matched_at,
+                )
+                for match in items
+            ],
+            next_offset=(offset + len(items)) if has_more else None,
+            has_more=has_more,
+        )
 
     def archive_trip(self, trip_id: int) -> TripDetail:
         trip = self._get_trip_for_user(trip_id)
