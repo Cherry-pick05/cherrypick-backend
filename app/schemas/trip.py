@@ -99,3 +99,21 @@ class TripListResponse(BaseModel):
     next_offset: int | None = None
     has_more: bool = False
 
+
+class TripItemListItem(BaseModel):
+    match_id: int
+    raw_label: str | None = None
+    norm_label: str | None = None
+    canonical_key: str | None = None
+    status: Literal["allow", "ban", "limited"] | None = None
+    confidence: float | None = None
+    decided_by: str
+    image_id: int | None = None
+    matched_at: datetime | None = None
+
+
+class TripItemsListResponse(BaseModel):
+    items: list[TripItemListItem]
+    next_offset: int | None = None
+    has_more: bool = False
+
