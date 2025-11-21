@@ -1,3 +1,6 @@
+from typing import Any
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore[import-not-found]
 
 
@@ -16,14 +19,33 @@ class Settings(BaseSettings):
     aws_region: str = "ap-northeast-2"
     aws_endpoint_url: str | None = "http://localhost:4566"  # LocalStack edge
     guest_hmac_secret: str = "change_me"
+    device_uuid_header: str = "X-Device-UUID"
+    device_token_header: str = "X-Device-Token"
+    device_token_ttl_seconds: int = 60 * 60 * 24 * 30  # 30 days
+    device_token_version: int = 1
+    device_recovery_code_ttl_hours: int = 24 * 14
+    device_recovery_code_length: int = 8
+    device_recovery_code_charset: str = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
     # Redis / CORS / Client
     redis_url: str = "redis://localhost:6379/0"
-    cors_origins: list[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-    ]
+    cors_origins: list[str] | str = "*"  # 개발 환경 기본값: 모든 origin 허용
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Any) -> list[str] | str:
+        if isinstance(v, str):
+            if v == "*":
+                return "*"
+            # 쉼표로 구분된 문자열을 리스트로 변환
+            if "," in v:
+                return [origin.strip() for origin in v.split(",") if origin.strip()]
+            # 단일 origin
+            return [v.strip()] if v.strip() else "*"
+        if isinstance(v, list):
+            return v
+        return "*"
+
     client_id_header: str = "X-Client-Id"
     gemini_model: str = "models/gemini-2.5-flash-lite"
     gemini_api_key: str | None = None
@@ -34,6 +56,27 @@ class Settings(BaseSettings):
     llm_classifier_confidence_threshold: float = 0.7
     llm_classifier_enabled: bool = True
     llm_classifier_l1_cache_size: int = 256
+
+    # Travel recommendation integrations
+    weather_api_key: str | None = None
+    weather_api_base_url: str = "https://api.openweathermap.org/data/2.5"
+    weather_units: str = "metric"
+    weather_lang: str = "kr"
+    weather_timeout_sec: float = 5.0
+
+    koreaexim_api_key: str | None = None
+    koreaexim_api_base_url: str = "https://www.koreaexim.go.kr/site/program/financial/exchangeJSON"
+    koreaexim_default_data: str = "AP01"
+    exchange_timeout_sec: float = 5.0
+
+    safe_mode_default: bool = True
+    supported_locales: list[str] = ["ko-KR", "en-US"]
+    units_defaults: dict[str, str] = {"weight": "kg", "length": "cm"}
+    ui_flags_defaults: dict[str, Any] = {"show_reco_tab": True, "max_payload_kb": 256}
+    feature_flags_defaults: dict[str, bool] = {"safety_mode": True, "tips_enabled": True}
+    ab_test_buckets: list[str] = ["control", "variant"]
+    rules_manifest_version: str = "2024-11-01"
+    taxonomy_manifest_version: str = "2024-11-01"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 

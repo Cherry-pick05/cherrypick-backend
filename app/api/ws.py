@@ -1,6 +1,7 @@
 from typing import Dict, Set
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/ws", tags=["ws"])
 
@@ -47,26 +48,11 @@ async def websocket_entry(ws: WebSocket):
 async def push_event(client_id: str, event: dict) -> None:
     await hub.broadcast(client_id, event)
 
-from fastapi import Depends, HTTPException
-from pydantic import BaseModel
 
 class DevPush(BaseModel):
     client_id: str
     event: dict
 
-@router.post("/dev/push")
-async def dev_push(body: DevPush):
-    if not body.client_id:
-        raise HTTPException(status_code=400, detail="client_id required")
-    await push_event(body.client_id, body.event)
-    return {"ok": True}
-
-from fastapi import Depends, HTTPException
-from pydantic import BaseModel
-
-class DevPush(BaseModel):
-    client_id: str
-    event: dict
 
 @router.post("/dev/push")
 async def dev_push(body: DevPush):

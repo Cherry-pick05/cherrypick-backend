@@ -1,0 +1,23 @@
+[
+  "benign_general",
+  "apparel_clothing",
+  "footwear_non_metal",
+  "headwear_hat_cap",
+  "scarf_gloves",
+  "accessory_non_battery",
+  "book_magazine",
+  "stationery_non_sharp",
+  "toy_soft_non_electric",
+  "umbrella",
+  "toiletry_solid",
+  "cosmetic_powder",
+  "food_solid_snack",
+  "gift_goods_general",
+  "charger_cable_no_battery",
+  "camera_tripod_no_battery",
+  "sports_equipment_non_hazard",
+  "musical_instrument_non_battery",
+  "textiles_fabric",
+  "souvenir_general"
+]
+

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List
@@ -84,8 +85,11 @@ class _TTLCache:
         self._store[key] = (time.monotonic() + self.ttl, value)
 
 
+logger = logging.getLogger(__name__)
+
 _L1_CACHE = _TTLCache(settings.llm_classifier_cache_ttl_seconds, settings.llm_classifier_l1_cache_size)
 ALLOWED_KEYS = get_allowed_keys()
+_DETERMINISTIC_TEMP_CAP = 0.05
 
 
 def classify_with_llm(raw_label: str, locale: str | None = None) -> LLMClassification:
@@ -102,10 +106,19 @@ def classify_with_llm(raw_label: str, locale: str | None = None) -> LLMClassific
         return cached
 
     prompt = _build_prompt(raw_label, norm, locale)
+    temperature = max(0.0, settings.llm_classifier_temperature)
+    if temperature > _DETERMINISTIC_TEMP_CAP:
+        logger.warning(
+            "llm_classifier_temperature %.3f exceeds deterministic cap %.2f; clamping.",
+            temperature,
+            _DETERMINISTIC_TEMP_CAP,
+        )
+        temperature = _DETERMINISTIC_TEMP_CAP
+
     try:
         response_text, model_info = get_gemini_client().generate_json(
             prompt,
-            temperature=settings.llm_classifier_temperature,
+            temperature=temperature,
             max_output_tokens=settings.llm_classifier_max_tokens,
         )
     except (GeminiClientError, GeminiCircuitOpenError) as exc:  # pragma: no cover - network path
@@ -159,7 +172,7 @@ You are a strict closed-set classifier for airline baggage items.
 Hard rules:
 - Choose categories only from ALLOWED_KEYS. Do not invent new keys.
 - If uncertain, set "abstain": true, return "categories": [] and "top": null.
-- Use only text present in Label/Normalized to justify matched_terms.
+- Use only text present in Label/Normalized to justify matched_terms (even for benign_general).
 - Output valid JSON only (no prose, no code fences, no trailing commas).
 - categories must contain 1–2 unique entries, sorted by descending score within [0,1].
 - signals.matched_terms must list 2–4 tokens actually found in the input.
@@ -176,7 +189,7 @@ Rules:
 1. Pick 1–2 categories strictly from ALLOWED_KEYS. If not clearly matchable, set "abstain": true.
 2. If "abstain": true, then "categories": [] and "top": null.
 3. Otherwise, include categories sorted by score (0–1). The best category is copied into top.
-4. signals.matched_terms must be 2–4 tokens from Label/Normalized that justify the choice.
+4. signals.matched_terms must be 2–4 tokens from Label/Normalized that justify the choice (this applies even when canonical=benign_general).
 5. Output valid JSON only with this schema:
 {{
   "categories": [{{"key": string, "score": number}}],

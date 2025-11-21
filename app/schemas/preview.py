@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -52,19 +52,22 @@ class PreviewResponse(BaseModel):
     engine: RuleEngineResponse | None = None
     narration: NarrationPayload | None = None
     ai_tips: list[TipEntry] = Field(default_factory=list)
+    flags: dict[str, Any] = Field(default_factory=dict)
 
 
 def make_rule_request(
     canonical: str,
     req_id: str,
     preview: PreviewRequest,
+    *,
+    item_params: ItemParams | None = None,
 ) -> RuleEngineRequest:
     return RuleEngineRequest(
         canonical=canonical,
         req_id=req_id,
         itinerary=preview.itinerary,
         segments=preview.segments,
-        item_params=preview.item_params,
+        item_params=item_params or preview.item_params,
         duty_free=preview.duty_free,
     )
 

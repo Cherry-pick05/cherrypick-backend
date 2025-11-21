@@ -13,6 +13,7 @@ class ItemParams(BaseModel):
     count: int | None = None
     abv_percent: float | None = None
     weight_kg: float | None = None
+    blade_length_cm: float | None = None
 
 
 class ItineraryInfo(BaseModel):

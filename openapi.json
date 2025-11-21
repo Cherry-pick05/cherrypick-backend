@@ -1,0 +1,1598 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "cherrypick",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/healthz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Healthz",
+        "operationId": "healthz_v1_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/media/presign": {
+      "post": {
+        "tags": [
+          "media"
+        ],
+        "summary": "Presign Upload",
+        "operationId": "presign_upload_v1_media_presign_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/media/submit": {
+      "post": {
+        "tags": [
+          "media"
+        ],
+        "summary": "Submit Image",
+        "operationId": "submit_image_v1_media_submit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ws/dev/push": {
+      "post": {
+        "tags": [
+          "ws"
+        ],
+        "summary": "Dev Push",
+        "operationId": "dev_push_v1_ws_dev_push_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DevPush"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/items/classify": {
+      "post": {
+        "tags": [
+          "items"
+        ],
+        "summary": "Classify Item",
+        "operationId": "classify_item_v1_items_classify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/items/decide": {
+      "post": {
+        "tags": [
+          "items"
+        ],
+        "summary": "Decide Item",
+        "operationId": "decide_item_v1_items_decide_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleEngineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleEngineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/items/preview": {
+      "post": {
+        "tags": [
+          "items"
+        ],
+        "summary": "Preview Item",
+        "operationId": "preview_item_v1_items_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/items/{item_id}/matches": {
+      "get": {
+        "tags": [
+          "items"
+        ],
+        "summary": "Get Item Matches",
+        "operationId": "get_item_matches_v1_items__item_id__matches_get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Item Matches V1 Items  Item Id  Matches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/items/{item_id}": {
+      "get": {
+        "tags": [
+          "items"
+        ],
+        "summary": "Get Item",
+        "operationId": "get_item_v1_items__item_id__get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Item V1 Items  Item Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/regulations": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Trip Regulations",
+        "operationId": "get_trip_regulations_v1_trips__trip_id__regulations_get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Trip",
+        "operationId": "get_trip_v1_trips__trip_id__get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trips/{trip_id}/recommendation": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Trip Recommendation",
+        "operationId": "get_trip_recommendation_v1_trips__trip_id__recommendation_get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRecommendationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CategoryScore": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "score"
+        ],
+        "title": "CategoryScore"
+      },
+      "ClassificationRequest": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Label"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "req_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Req Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "ClassificationRequest"
+      },
+      "ClassificationResponse": {
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "title": "Req Id"
+          },
+          "canonical": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "candidates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryScore"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "abstain": {
+            "type": "boolean",
+            "title": "Abstain"
+          },
+          "decided_by": {
+            "type": "string",
+            "title": "Decided By"
+          },
+          "norm_label": {
+            "type": "string",
+            "title": "Norm Label"
+          },
+          "signals": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Signals"
+          },
+          "model_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Info"
+          }
+        },
+        "type": "object",
+        "required": [
+          "req_id",
+          "canonical",
+          "confidence",
+          "candidates",
+          "categories",
+          "abstain",
+          "decided_by",
+          "norm_label",
+          "signals"
+        ],
+        "title": "ClassificationResponse"
+      },
+      "DecisionPayload": {
+        "properties": {
+          "carry_on": {
+            "$ref": "#/components/schemas/DecisionSlot"
+          },
+          "checked": {
+            "$ref": "#/components/schemas/DecisionSlot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "carry_on",
+          "checked"
+        ],
+        "title": "DecisionPayload"
+      },
+      "DecisionSlot": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "limit",
+              "deny"
+            ],
+            "title": "Status"
+          },
+          "badges": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Badges"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reason Codes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "DecisionSlot"
+      },
+      "DevPush": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "title": "Client Id"
+          },
+          "event": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "event"
+        ],
+        "title": "DevPush"
+      },
+      "DutyFreeInfo": {
+        "properties": {
+          "is_df": {
+            "type": "boolean",
+            "title": "Is Df",
+            "default": false
+          },
+          "steb_sealed": {
+            "type": "boolean",
+            "title": "Steb Sealed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "DutyFreeInfo"
+      },
+      "ExchangeRateInfo": {
+        "properties": {
+          "currency_code": {
+            "type": "string",
+            "title": "Currency Code"
+          },
+          "currency_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Name"
+          },
+          "base_currency": {
+            "type": "string",
+            "title": "Base Currency",
+            "default": "KRW"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate"
+          },
+          "last_updated": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Updated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency_code"
+        ],
+        "title": "ExchangeRateInfo"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ItemParams": {
+        "properties": {
+          "volume_ml": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volume Ml"
+          },
+          "wh": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wh"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "abv_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abv Percent"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          },
+          "blade_length_cm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blade Length Cm"
+          }
+        },
+        "type": "object",
+        "title": "ItemParams"
+      },
+      "ItineraryInfo": {
+        "properties": {
+          "from": {
+            "type": "string",
+            "minLength": 3,
+            "title": "From"
+          },
+          "to": {
+            "type": "string",
+            "minLength": 3,
+            "title": "To"
+          },
+          "via": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Via"
+          },
+          "rescreening": {
+            "type": "boolean",
+            "title": "Rescreening",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "from",
+          "to"
+        ],
+        "title": "ItineraryInfo"
+      },
+      "NarrationCard": {
+        "properties": {
+          "status_label": {
+            "type": "string",
+            "title": "Status Label"
+          },
+          "short_reason": {
+            "type": "string",
+            "title": "Short Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status_label",
+          "short_reason"
+        ],
+        "title": "NarrationCard"
+      },
+      "NarrationPayload": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "carry_on_card": {
+            "$ref": "#/components/schemas/NarrationCard"
+          },
+          "checked_card": {
+            "$ref": "#/components/schemas/NarrationCard"
+          },
+          "bullets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Bullets"
+          },
+          "badges": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Badges"
+          },
+          "footnote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Footnote"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "carry_on_card",
+          "checked_card",
+          "bullets",
+          "badges"
+        ],
+        "title": "NarrationPayload"
+      },
+      "PresignRequest": {
+        "properties": {
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "ext": {
+            "type": "string",
+            "enum": [
+              "jpg",
+              "jpeg",
+              "png",
+              "webp"
+            ],
+            "title": "Ext"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content_type",
+          "ext"
+        ],
+        "title": "PresignRequest"
+      },
+      "PresignResponse": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "fields": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Fields"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "key"
+        ],
+        "title": "PresignResponse"
+      },
+      "PreviewRequest": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "req_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Req Id"
+          },
+          "itinerary": {
+            "$ref": "#/components/schemas/ItineraryInfo"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentInfo"
+            },
+            "type": "array",
+            "title": "Segments"
+          },
+          "item_params": {
+            "$ref": "#/components/schemas/ItemParams"
+          },
+          "duty_free": {
+            "$ref": "#/components/schemas/DutyFreeInfo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "itinerary"
+        ],
+        "title": "PreviewRequest"
+      },
+      "PreviewResponse": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "needs_review"
+            ],
+            "title": "State",
+            "default": "complete"
+          },
+          "resolved": {
+            "$ref": "#/components/schemas/ResolvedInfo"
+          },
+          "engine": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuleEngineResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "narration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NarrationPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ai_tips": {
+            "items": {
+              "$ref": "#/components/schemas/TipEntry"
+            },
+            "type": "array",
+            "title": "Ai Tips"
+          },
+          "flags": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Flags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resolved"
+        ],
+        "title": "PreviewResponse"
+      },
+      "ResolvedInfo": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "canonical": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "ResolvedInfo"
+      },
+      "RuleEngineRequest": {
+        "properties": {
+          "canonical": {
+            "type": "string",
+            "title": "Canonical"
+          },
+          "req_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Req Id"
+          },
+          "item_params": {
+            "$ref": "#/components/schemas/ItemParams"
+          },
+          "itinerary": {
+            "$ref": "#/components/schemas/ItineraryInfo"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentInfo"
+            },
+            "type": "array",
+            "title": "Segments"
+          },
+          "duty_free": {
+            "$ref": "#/components/schemas/DutyFreeInfo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "canonical",
+          "itinerary"
+        ],
+        "title": "RuleEngineRequest"
+      },
+      "RuleEngineResponse": {
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "title": "Req Id"
+          },
+          "canonical": {
+            "type": "string",
+            "title": "Canonical"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/DecisionPayload"
+          },
+          "conditions": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Conditions"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceEntry"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/TraceEntry"
+            },
+            "type": "array",
+            "title": "Trace"
+          },
+          "ai_tips": {
+            "items": {
+              "$ref": "#/components/schemas/TipEntry"
+            },
+            "type": "array",
+            "title": "Ai Tips"
+          }
+        },
+        "type": "object",
+        "required": [
+          "req_id",
+          "canonical",
+          "decision",
+          "conditions",
+          "sources",
+          "trace"
+        ],
+        "title": "RuleEngineResponse"
+      },
+      "SegmentInfo": {
+        "properties": {
+          "leg": {
+            "type": "string",
+            "title": "Leg"
+          },
+          "operating": {
+            "type": "string",
+            "minLength": 2,
+            "title": "Operating"
+          },
+          "cabin_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cabin Class"
+          }
+        },
+        "type": "object",
+        "required": [
+          "leg",
+          "operating"
+        ],
+        "title": "SegmentInfo"
+      },
+      "SourceEntry": {
+        "properties": {
+          "layer": {
+            "type": "string",
+            "title": "Layer"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "layer",
+          "code"
+        ],
+        "title": "SourceEntry"
+      },
+      "SubmitRequest": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "trip_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trip Id"
+          },
+          "label_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label Hint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "title": "SubmitRequest"
+      },
+      "TipEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "relevance": {
+            "type": "number",
+            "title": "Relevance",
+            "default": 0.5
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "TipEntry"
+      },
+      "TraceEntry": {
+        "properties": {
+          "rule_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "layer": {
+            "type": "string",
+            "title": "Layer"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "item_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Category"
+          },
+          "effect": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "allow",
+                    "limit",
+                    "deny"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Effect"
+          },
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reason Codes"
+          },
+          "constraints_used": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Constraints Used"
+          }
+        },
+        "type": "object",
+        "required": [
+          "layer",
+          "code",
+          "effect",
+          "applied"
+        ],
+        "title": "TraceEntry"
+      },
+      "TripRecommendationResponse": {
+        "properties": {
+          "trip_id": {
+            "type": "integer",
+            "title": "Trip Id"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          },
+          "weather": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exchange_rate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExchangeRateInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "popular_items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Popular Items"
+          },
+          "outfit_tip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outfit Tip"
+          },
+          "shopping_guide": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shopping Guide"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trip_id"
+        ],
+        "title": "TripRecommendationResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeatherInfo": {
+        "properties": {
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature C"
+          },
+          "feels_like_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feels Like C"
+          },
+          "humidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Humidity"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          }
+        },
+        "type": "object",
+        "title": "WeatherInfo"
+      }
+    }
+  }
+}

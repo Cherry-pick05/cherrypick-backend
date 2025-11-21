@@ -8,10 +8,16 @@ from app.api.routes import api_router
 def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name)
     # CORS
+    # "*"일 때는 allow_credentials를 False로 설정 (FastAPI 제약)
+    cors_origins = settings.cors_origins
+    allow_creds = cors_origins != "*"
+    if cors_origins == "*":
+        cors_origins = ["*"]
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
+        allow_origins=cors_origins,
+        allow_credentials=allow_creds,
         allow_methods=["*"],
         allow_headers=["*"],
     )
