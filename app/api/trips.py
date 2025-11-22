@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import DeviceAuthContext, require_device_auth
-from app.db.models.trip import Trip
 from app.db.session import get_db
+from app.schemas.flight import FlightLookupRequest, FlightLookupResponse
 from app.schemas.recommendation import TripRecommendationResponse
 from app.schemas.trip import TripCreate, TripDetail, TripItemsListResponse, TripListResponse
 from app.services.recommendation import RecommendationService
+from app.services.flight_lookup import FlightLookupError, FlightLookupService
 from app.services.trip_service import TripService, TripStatusFilter
 
 router = APIRouter(prefix="/trips", tags=["trips"])
@@ -17,6 +18,18 @@ def get_trip_service(
     db: Session = Depends(get_db),
 ) -> TripService:
     return TripService(db, auth)
+
+
+@router.post("/lookup-flight", response_model=FlightLookupResponse, status_code=200)
+def lookup_flight(
+    payload: FlightLookupRequest,
+    auth: DeviceAuthContext = Depends(require_device_auth),
+) -> FlightLookupResponse:
+    service = FlightLookupService()
+    try:
+        return service.lookup(payload.flight_code, payload.code_type)
+    except FlightLookupError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.code) from exc
 
 
 @router.post("", response_model=TripDetail, status_code=201)

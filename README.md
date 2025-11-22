@@ -152,6 +152,9 @@ AWS_ENDPOINT_URL=http://localhost:4566
 # CORS
 CORS_ORIGINS=*
 CLIENT_ID_HEADER=X-Client-Id
+
+# AirLabs Flight Lookup
+AIRLABS_API_KEY=your_airlabs_api_key
 ```
 
 ### 선택적 설정

@@ -62,6 +62,11 @@
 
 트립 생성 시 기본 가방 두 개(`carry_on`, `checked`)가 자동 생성되며, 사용자 정의 가방도 `/trips/{trip_id}/bags` 엔드포인트를 통해 추가할 수 있습니다. 기본 가방 할당은 `TripService` 내부 로직에서 처리하므로, 추가 가방을 만들어도 체크리스트 저장 로직과 일관성이 보장됩니다.
 
+### 3.0 `POST /v1/trips/lookup-flight`
+- Body: `{ "flight_code": "AA6", "code_type": "iata" }` (`code_type`: `iata` or `icao`)
+- Response: 항공편의 출발/도착 공항, 터미널/게이트, UTC/로컬 시간, 항공사/기종, 추천 segment(`segment_hint`)가 포함된 JSON
+- 사용처: 사용자가 항공편 번호만 입력하면 AirLabs API를 통해 여정 데이터를 자동 완성한 뒤, 제출 전에 다시 확인할 수 있도록 함
+- 주의: AirLabs API Key (`AIRLABS_API_KEY`) 설정이 필요하며, 실시간 운항 변경이 있을 수 있으므로 제출 전 최신 정보 확인 필요
 ### 3.1 `GET /v1/trips/{trip_id}/bags`
 - Response: `{ "items": [ { "bag_id", "trip_id", "name", "bag_type", "is_default", "sort_order", "total_items", "packed_items", "created_at", "updated_at" }, ... ] }`
 - 사용처: 트립 상세 화면에서 가방 목록과 각 가방의 진행 상황(총 아이템 수, 완료 수)을 한 번에 보여줄 때 사용.
