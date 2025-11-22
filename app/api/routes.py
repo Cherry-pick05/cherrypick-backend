@@ -13,11 +13,15 @@ from app.api.ws import router as ws_router
 
 api_router = APIRouter()
 api_router.include_router(health_router)
-api_router.include_router(bootstrap_router)
-api_router.include_router(devices_router)
-api_router.include_router(media_router)
 api_router.include_router(ws_router)
-api_router.include_router(items_router)
-api_router.include_router(reference_router)
-api_router.include_router(trips_router)
-api_router.include_router(bags_router)
+
+v1_router = APIRouter(prefix="/v1")
+v1_router.include_router(bootstrap_router)
+v1_router.include_router(devices_router)
+v1_router.include_router(media_router)
+v1_router.include_router(items_router)
+v1_router.include_router(reference_router)
+v1_router.include_router(trips_router)
+v1_router.include_router(bags_router)
+
+api_router.include_router(v1_router)

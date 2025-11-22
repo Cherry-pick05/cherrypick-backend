@@ -33,7 +33,7 @@ BENIGN_KEY = "benign_general"
 BENIGN_CATEGORIES = set(get_benign_keys())
 
 
-router = APIRouter(prefix="/v1/items", tags=["items"])
+router = APIRouter(prefix="/items", tags=["items"])
 logger = logging.getLogger(__name__)
 
 

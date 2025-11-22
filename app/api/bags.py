@@ -13,7 +13,7 @@ from app.schemas.checklist import (
 )
 from app.services.bag_service import BagService
 
-router = APIRouter(prefix="/v1", tags=["bags"])
+router = APIRouter(tags=["bags"])
 
 
 def get_bag_service(

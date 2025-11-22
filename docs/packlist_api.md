@@ -34,7 +34,7 @@
 | --- | --- |
 | Request | `{ "label": "휴대폰 배터리", "locale": "ko-KR?", "req_id": "선택" }` |
 | Response | `req_id`, `canonical`, `confidence`, `candidates`, `categories[]`, `abstain`, `decided_by`, `norm_label`, `signals`, `model_info` |
-| 비고 | 자동 저장 없음. 사용자가 `/v1/items/save` 호출해야 DB 반영. 디버깅/ 내부용(프론트 사용 x) |
+| 비고 | 자동 저장 없음. 사용자가 `/v1/items/save` 호출해야 DB 반영. **디버깅/ 내부용(프론트 사용 x)** |
 
 ### 2.2 `POST /v1/items/preview`
 - Request: `PreviewRequest` (`label`, `locale`, `req_id?`, `itinerary`, `segments[]`, `item_params`, `duty_free`)

@@ -11,7 +11,7 @@ from app.db.session import get_db
 from app.services.app_config import build_bootstrap_config
 from app.services.device_registry import DeviceRegistry
 
-router = APIRouter(tags=["bootstrap"])
+router = APIRouter(prefix="/bootstrap", tags=["bootstrap"])
 
 
 class ConsentRequest(BaseModel):

@@ -9,7 +9,7 @@ from app.schemas.trip import TripCreate, TripDetail, TripItemsListResponse, Trip
 from app.services.recommendation import RecommendationService
 from app.services.trip_service import TripService, TripStatusFilter
 
-router = APIRouter(prefix="/v1/trips", tags=["trips"])
+router = APIRouter(prefix="/trips", tags=["trips"])
 
 
 def get_trip_service(
