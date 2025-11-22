@@ -29,19 +29,19 @@
 
 ## 2. 아이템 분류 / 미리보기 / 저장
 
-### 2.1 `POST /items/classify`
+### 2.1 `POST /v1/items/classify`
 | 항목 | 값 |
 | --- | --- |
 | Request | `{ "label": "휴대폰 배터리", "locale": "ko-KR?", "req_id": "선택" }` |
 | Response | `req_id`, `canonical`, `confidence`, `candidates`, `categories[]`, `abstain`, `decided_by`, `norm_label`, `signals`, `model_info` |
-| 비고 | 자동 저장 없음. 사용자가 `/items/save` 호출해야 DB 반영 |
+| 비고 | 자동 저장 없음. 사용자가 `/v1/items/save` 호출해야 DB 반영. 디버깅/ 내부용(프론트 사용 x) |
 
-### 2.2 `POST /items/preview`
+### 2.2 `POST /v1/items/preview`
 - Request: `PreviewRequest` (`label`, `locale`, `req_id?`, `itinerary`, `segments[]`, `item_params`, `duty_free`)
 - Response: `PreviewResponse` (`state`, `resolved`, `engine`, `narration`, `ai_tips`, `flags`)
 - 주 사용처: 저장 전에 LLM·룰엔진 결과 확인.
 
-### 2.3 `POST /items/save`
+### 2.3 `POST /v1/items/save`
 | 필드 | 설명 |
 | --- | --- |
 | `req_id` | preview/classify에서 사용한 식별자 |
@@ -60,7 +60,7 @@
 
 ## 3. 트립 & 가방
 
-트립 생성 시 기본 가방 두 개(`carry_on`, `checked`)가 자동 생성되며, 사용자 정의 가방도 `/trips/{trip_id}/bags` 엔드포인트를 통해 추가할 수 있습니다. `BagService.create_bag`이 트립/사용자 일관성을 검증하므로 기본 가방 외 확장도 안전하게 동작합니다.
+트립 생성 시 기본 가방 두 개(`carry_on`, `checked`)가 자동 생성되며, 사용자 정의 가방도 `/trips/{trip_id}/bags` 엔드포인트를 통해 추가할 수 있습니다. 기본 가방 할당은 `TripService` 내부 로직에서 처리하므로, 추가 가방을 만들어도 체크리스트 저장 로직과 일관성이 보장됩니다.
 
 ### 3.1 `GET /v1/trips/{trip_id}/bags`
 - Response: `{ "items": [ { "bag_id", "trip_id", "name", "bag_type", "is_default", "sort_order", "total_items", "packed_items", "created_at", "updated_at" }, ... ] }`
@@ -70,7 +70,7 @@
 - Body: `{ "name": "스포츠 장비", "bag_type": "custom", "sort_order": 3 }`
 - 제약: `is_default=true` 금지, 동일 트립 내 `bag_type="carry_on"/"checked"`는 기본 가방만 존재. `bag_type="custom"`은 다수 생성 가능.
 - Response: `BagSummary`
-- 동작: TripService → BagService를 통해 `user_id`, `trip_id`를 강제로 세팅하므로 기본 가방 외 가방을 추가해도 모든 체크리스트 저장 로직과 연동됩니다.
+- 동작: TripService에서 기본 가방을 자동으로 채우며, 가방 생성 API는 `user_id`, `trip_id`를 서버에서 강제 세팅하므로 모든 체크리스트 저장 로직과 연동됩니다.
 
 ### 3.3 `PATCH /v1/bags/{bag_id}`
 - Body: `{ "name"?, "bag_type"?, "sort_order"? }`
@@ -143,8 +143,8 @@
 1. **디바이스 등록**: `/devices/register` → `device_token` 획득.
 2. **트립 생성**: `/v1/trips` → 기본 가방 2개 자동 생성.
 3. **(선택) 추가 가방 생성**: `/v1/trips/{trip_id}/bags` POST로 필요 가방을 추가 생성.
-4. **미리보기**: `/items/preview` → Allow/Limited 정보 확인.
-5. **가방 선택 후 저장**: `/items/save` (필수: `bag_id`).
+4. **미리보기**: `/v1/items/preview` → Allow/Limited 정보 확인.
+5. **가방 선택 후 저장**: `/v1/items/save` (필수: `bag_id`).
 6. **체크리스트 조회**: `/v1/trips/{trip_id}/items` 또는 `/v1/bags/{bag_id}/items`.
 7. **사용자 편집**: `/v1/bag-items/{item_id}` PATCH로 상태, 수량, 메모, 가방 이동 관리.
 
@@ -165,7 +165,7 @@
 | 트립 추천 | `GET /v1/trips/{trip_id}/recommendation` | 여행별 맞춤 추천(LLM/외부 데이터 기반) |
 | 가방 | `PATCH /v1/bags/{bag_id}` | 이름/정렬 순서/타입(커스텀 가방만) 수정 |
 | 가방 | `DELETE /v1/bags/{bag_id}` | 기본 가방 제외 삭제 |
-| 아이템 | `POST /items/decide` | (디버깅/내부용) 룰엔진 단독 호출 |
+| 아이템 | `POST /v1/items/decide` | (디버깅/내부용) 룰엔진 단독 호출 |
 | 미디어 | `/v1/media/*` | 이미지 업로드, 상태 조회 (패킹 리스트와 간접 연관) |
 
 위 목록은 현재 코드베이스에서 정상 동작 중인 API만 포함했으며, 새로운 엔드포인트가 추가되면 이 섹션 또한 함께 갱신해 주세요.

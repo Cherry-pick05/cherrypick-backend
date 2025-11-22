@@ -24,7 +24,6 @@ from app.schemas.trip import (
     TripUpdate,
 )
 from app.services.airport_lookup import get_country_code
-from app.services.bag_service import apply_default_bags
 
 TripStatusFilter = Literal["active", "archived", "all"]
 
@@ -46,7 +45,7 @@ class TripService:
 
         self._validate_date_range(trip)
         self._infer_countries_and_route(trip)
-        apply_default_bags(self.db, self.auth, trip)
+        self._ensure_default_bags(trip)
 
         self.db.add(trip)
         self.db.commit()
@@ -64,7 +63,7 @@ class TripService:
 
         self._validate_date_range(trip)
         self._infer_countries_and_route(trip)
-        apply_default_bags(self.db, self.auth, trip)
+        self._ensure_default_bags(trip)
 
         self.db.commit()
         self.db.refresh(trip)
@@ -281,6 +280,26 @@ class TripService:
         if len(dep) != 3 or len(arr) != 3:
             raise HTTPException(status_code=400, detail="invalid_segment_leg")
         return dep, arr
+
+    def _ensure_default_bags(self, trip: Trip) -> None:
+        existing_types = {bag.bag_type for bag in trip.bags if bag.is_default}
+        defaults = [
+            ("carry_on", "기내수하물", 0),
+            ("checked", "위탁수하물", 1),
+        ]
+        for bag_type, name, sort_order in defaults:
+            if bag_type in existing_types:
+                continue
+            trip.bags.append(
+                Bag(
+                    user_id=self.auth.user.user_id,
+                    trip_id=trip.trip_id,
+                    name=name,
+                    bag_type=bag_type,
+                    is_default=True,
+                    sort_order=sort_order,
+                )
+            )
 
     def _country_for_airport(self, airport_code: str | None) -> str | None:
         if not airport_code:

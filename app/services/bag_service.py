@@ -25,27 +25,6 @@ class BagService:
     # ------------------------------------------------------------------ #
     # Bag helpers
     # ------------------------------------------------------------------ #
-    def ensure_default_bags(self, trip: Trip) -> None:
-        """Trip 생성 시 기본 가방 2개를 보장합니다."""
-        existing_types = {bag.bag_type for bag in trip.bags if bag.is_default}
-        defaults: list[tuple[str, str, int]] = [
-            ("carry_on", "기내수하물", 0),
-            ("checked", "위탁수하물", 1),
-        ]
-        for bag_type, name, sort_order in defaults:
-            if bag_type in existing_types:
-                continue
-            trip.bags.append(
-                Bag(
-                    user_id=self.auth.user.user_id,
-                    trip_id=trip.trip_id,
-                    name=name,
-                    bag_type=bag_type,
-                    is_default=True,
-                    sort_order=sort_order,
-                )
-            )
-
     def list_bags(self, trip_id: int) -> BagListResponse:
         trip = self._get_trip_for_user(trip_id)
         counts_subq = (
@@ -243,10 +222,3 @@ class BagService:
         if status:
             query = query.where(BagItem.status == status)
         return self.db.scalar(query) or 0
-
-
-def apply_default_bags(db: Session, auth: DeviceAuthContext, trip: Trip) -> None:
-    """TripService에서 기본 가방 생성을 재사용할 수 있도록 헬퍼를 노출합니다."""
-    BagService(db, auth).ensure_default_bags(trip)
-
-

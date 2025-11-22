@@ -33,7 +33,7 @@ BENIGN_KEY = "benign_general"
 BENIGN_CATEGORIES = set(get_benign_keys())
 
 
-router = APIRouter(prefix="/items", tags=["items"])
+router = APIRouter(prefix="/v1/items", tags=["items"])
 logger = logging.getLogger(__name__)
 
 
@@ -69,7 +69,7 @@ def classify_item(req: ClassificationRequest, db: Session = Depends(get_db)) -> 
 
     result = classify_label(label, locale=req.locale)
     req_id = req.req_id or uuid.uuid4().hex
-    # Note: 저장은 사용자가 명시적으로 /items/save를 호출할 때만 수행됩니다.
+    # Note: 저장은 사용자가 명시적으로 /v1/items/save를 호출할 때만 수행됩니다.
 
     return ClassificationResponse(
         req_id=req_id,
