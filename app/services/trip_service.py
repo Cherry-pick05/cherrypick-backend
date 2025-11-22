@@ -195,47 +195,6 @@ class TripService:
         self.db.refresh(trip)
         return self._build_trip_detail(trip)
 
-    def duplicate_trip(self, trip_id: int) -> TripDetail:
-        original = self._get_trip_for_user(trip_id)
-        copy = Trip(
-            user_id=self.auth.user.user_id,
-            title=(original.title or "") + " (복제)",
-            note=original.note,
-            from_airport=original.from_airport,
-            to_airport=original.to_airport,
-            country_from=original.country_from,
-            country_to=original.country_to,
-            route_type=original.route_type,
-            start_date=original.start_date,
-            end_date=original.end_date,
-            tags_json=list(original.tags_json or []),
-            active=False,
-        )
-
-        for via in original.via_airports:
-            copy.via_airports.append(
-                TripViaAirport(airport_code=via.airport_code, via_order=via.via_order),
-            )
-        for seg in original.segments:
-            copy.segments.append(
-                TripSegment(
-                    segment_order=seg.segment_order,
-                    direction=seg.direction,
-                    departure_airport=seg.departure_airport,
-                    arrival_airport=seg.arrival_airport,
-                    departure_country=seg.departure_country,
-                    arrival_country=seg.arrival_country,
-                    operating_airline=seg.operating_airline,
-                    cabin_class=seg.cabin_class,
-                    departure_date=seg.departure_date,
-                )
-            )
-
-        self.db.add(copy)
-        self.db.commit()
-        self.db.refresh(copy)
-        return self._build_trip_detail(copy)
-
     # ------------------------------------------------------------------ #
     # Helpers
     # ------------------------------------------------------------------ #

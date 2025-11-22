@@ -71,12 +71,6 @@ def set_active(trip_id: int, service: TripService = Depends(get_trip_service)) -
     return {"trip_id": trip.trip_id, "active": True}
 
 
-@router.post("/{trip_id}/duplicate")
-def duplicate_trip(trip_id: int, service: TripService = Depends(get_trip_service)) -> dict:
-    copy = service.duplicate_trip(trip_id)
-    return {"trip_id_new": copy.trip_id}
-
-
 @router.get(
     "/{trip_id}/recommendation",
     response_model=TripRecommendationResponse,
