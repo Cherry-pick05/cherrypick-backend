@@ -1,6 +1,6 @@
 # 패킹 리스트 / 아이템 API 정리
 
-본 문서는 CherryPick 앱에서 기기 기반 사용자 인증을 거친 뒤 사용하는 패킹 리스트 관련 API를 정리한 문서입니다. 모든 엔드포인트는 FastAPI 기준 base path(`/v1` 혹은 `/items`) 아래에 노출되며, 별도의 언급이 없는 한 HTTPS + JSON Body를 사용합니다.
+본 문서는 CherryPick 앱에서 기기 기반 사용자 인증을 거친 뒤 사용하는 패킹 리스트 관련 API를 정리한 문서입니다. 대부분의 API는 `/v1/...` 경로에 노출되며, `/healthz`, `/ws` 등 일부 공용 엔드포인트만 루트(`/`)에 그대로 노출됩니다. 별도 언급이 없는 한 HTTPS + JSON Body를 사용합니다.
 
 ---
 
@@ -153,7 +153,7 @@
 ## 7. 기타 가용 API 요약
 | 분류 | 메서드 & 경로 | 설명 |
 | --- | --- | --- |
-| 건강 체크 | `GET /v1/health` | 간단한 서비스 상태 확인 |
+| 건강 체크 | `GET /healthz` | 간단한 서비스 상태 확인 |
 | 부트스트랩 | `POST /bootstrap/consent` | 이용약관/개인정보 동의 기록 |
 | 부트스트랩 | `GET /bootstrap/config` | 앱에 필요한 플래그/설정 제공 |
 | 디바이스 | `POST /devices/refresh` | 기존 디바이스 프로필 갱신 및 토큰 재발급 |
@@ -163,6 +163,7 @@
 | 트립 | `POST /v1/trips/{trip_id}/set_active` | 해당 트립을 활성 트립으로 지정 |
 | 트립 | `DELETE /v1/trips/{trip_id}?purge=true` | 트립 및 연결 레코드 삭제 |
 | 트립 추천 | `GET /v1/trips/{trip_id}/recommendation` | 여행별 맞춤 추천(LLM/외부 데이터 기반) |
+| 레퍼런스 | `GET /v1/reference/cabin_classes` | 좌석 등급 목록(airline_code=KE/TW 등으로 항공사별 조회) |
 | 가방 | `PATCH /v1/bags/{bag_id}` | 이름/정렬 순서/타입(커스텀 가방만) 수정 |
 | 가방 | `DELETE /v1/bags/{bag_id}` | 기본 가방 제외 삭제 |
 | 아이템 | `POST /v1/items/decide` | (디버깅/내부용) 룰엔진 단독 호출 |

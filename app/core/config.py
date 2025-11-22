@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     s3_bucket: str = "cherrypick-item-crops"
     aws_region: str = "ap-northeast-2"
     aws_endpoint_url: str | None = "http://localhost:4566"  # LocalStack edge
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
     guest_hmac_secret: str = "change_me"
     device_uuid_header: str = "X-Device-UUID"
     device_token_header: str = "X-Device-Token"

@@ -5,9 +5,15 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import DeviceAuthContext, maybe_device_auth
 from app.db.session import get_db
-from app.schemas.reference import AirlineListResponse, AirportListResponse, CountryListResponse
+from app.schemas.reference import (
+    AirlineListResponse,
+    AirportListResponse,
+    CabinClassListResponse,
+    CountryListResponse,
+)
 from app.services.airport_directory import AirportDirectoryService, CountryDirectoryService
 from app.services.regulation_sources import REGULATION_SOURCES
+from app.services.reference_data import AIRLINE_CABIN_CLASSES, CABIN_CLASSES_DEFAULT
 
 
 router = APIRouter(prefix="/reference", tags=["reference"])
@@ -69,5 +75,18 @@ def list_airlines(
         items.append({"code": code, "name": config.get("name", code)})
 
     return AirlineListResponse(items=sorted(items, key=lambda x: x["code"]))
+
+
+@router.get("/cabin_classes", response_model=CabinClassListResponse)
+def list_cabin_classes(
+    airline_code: str | None = Query(
+        None, description="항공사 코드(예: KE, TW). 없으면 기본 좌석 등급 반환"
+    )
+) -> CabinClassListResponse:
+    if airline_code:
+        matched = AIRLINE_CABIN_CLASSES.get(airline_code.upper())
+        if matched:
+            return CabinClassListResponse(items=matched)
+    return CabinClassListResponse(items=CABIN_CLASSES_DEFAULT)
 
 

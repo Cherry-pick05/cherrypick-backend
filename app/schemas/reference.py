@@ -29,3 +29,22 @@ class AirportListResponse(BaseModel):
     items: list[AirportItem]
 
 
+class CabinClassItem(BaseModel):
+    code: str
+    name: str
+    description: str | None = None
+
+
+class CabinClassListResponse(BaseModel):
+    items: list[CabinClassItem]
+
+
+class AirlineItem(BaseModel):
+    code: str = Field(..., min_length=2, max_length=8)
+    name: str
+
+
+class AirlineListResponse(BaseModel):
+    items: list[AirlineItem]
+
+

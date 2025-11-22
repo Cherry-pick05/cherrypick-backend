@@ -33,7 +33,7 @@ def create_app() -> FastAPI:
         except Exception as exc:
             return JSONResponse(status_code=500, content={"detail": "internal_error"})
         return response
-    app.include_router(api_router, prefix="/v1")
+    app.include_router(api_router)
     return app
 
 
