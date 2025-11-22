@@ -95,6 +95,13 @@
   - `updated_at`
 - 사용처: 트립 상세 화면에서 “모든 아이템” 탭을 구현하거나, 무한 스크롤 형태로 최신 저장 내역을 보여줄 때.
 
+### 3.6 `PATCH /v1/trips/{trip_id}/duration`
+- Body: `{ "start_date": "2025-03-01"?, "end_date": "2025-03-10"? }` (둘 중 하나 이상 필수. 요청 후 최종적으로 두 값 모두 채워져 있어야 합니다.)
+- 검증: `start_date <= end_date`, 최종 값 중 하나라도 `null`이면 `400 duration_incomplete`. 바뀐 값이 없으면 `400 duration_missing`.
+- Response: `{ "trip_id": 12, "start_date": "2025-03-01", "end_date": "2025-03-10", "needs_duration": false }`
+- 에러 코드: `400 invalid_date_range`, `400 duration_incomplete`, `400 duration_missing`, `404/403 trip_not_found`.
+- 비고: 모든 Trip 상세/리스트 응답에는 `needs_duration` 필드가 포함되어 있어, 추천 시스템은 이 값이 `false`일 때만 호출 가능합니다.
+
 ---
 
 ## 4. 체크리스트 아이템
@@ -168,6 +175,116 @@
 | 트립 | `POST /v1/trips/{trip_id}/set_active` | 해당 트립을 활성 트립으로 지정 |
 | 트립 | `DELETE /v1/trips/{trip_id}?purge=true` | 트립 및 연결 레코드 삭제 |
 | 트립 추천 | `GET /v1/trips/{trip_id}/recommendation` | 여행별 맞춤 추천(LLM/외부 데이터 기반) |
+| 짐 추천 | `POST /v1/trips/{trip_id}/recommendations/outfit` | 기후 요약 기반 LLM 짐 추천 |
+| 날씨 요약 | `GET /v1/climate/trips/{trip_id}/recent` | Meteostat Point Normals 기반 기간별 기후 요약 |
+## 8. 기후 요약 API
+- `503 meteostat_api_key_missing`, `503 meteostat_unavailable`, `503 meteostat_no_data`
+
+## 9. AI 짐 추천 API
+
+### 9.1 `POST /v1/trips/{trip_id}/recommendations/outfit`
+- Body (선택):
+  ```
+  {
+    "years": 3,
+    "aggregation": "weighted",   // weighted | simple
+    "locale": "ko-KR"
+  }
+  ```
+- 전제 조건:
+  - Trip에 `start_date`, `end_date`, `to_airport`가 설정되어 있어야 하며, 필요 시 `PATCH /v1/trips/{trip_id}/duration`으로 기간을 먼저 채워야 합니다.
+  - `METEOSTAT_API_KEY`, `GEMINI_API_KEY`가 설정되어 있어야 합니다.
+- 처리 흐름:
+  1. 내부적으로 `TripClimateService`를 호출하여 Meteostat Point Normals 기반 기후 요약을 얻습니다.
+  2. 기후 요약을 System 프롬프트(의류 추천 전용)와 함께 Gemini 모델에 전달합니다.
+  3. 모델 응답(JSON)을 검증해 `title`, `description`, `items[3~4개]`, `facts` 블록을 반환합니다.
+- Response 예시:
+  ```json
+  {
+    "trip_id": 42,
+    "climate": { ... 기후 요약 ... },
+    "recommendation": {
+      "title": "은은히 번지는 봄기류",
+      "description": "낮에는 15°C 남짓으로 온화하고 밤에는 7°C 안팎으로 선선해요. 서울보다 약간 습해 가벼운 겉옷이 있으면 안심돼요.",
+      "items": [
+        {
+          "key": "light_jacket",
+          "label": "얇은 재킷을 챙기세요",
+          "priority": "high",
+          "why": "아침저녁 기온이 내려가도 체온을 지켜줘요"
+        },
+        {
+          "key": "folding_umbrella",
+          "label": "접이식 우산이 있으면 안심이에요",
+          "priority": "medium",
+          "why": "비가 잦은 편이라 대비하면 좋아요"
+        }
+      ],
+      "facts": {
+        "basis": "historical_normals",
+        "date_span": ["2025-05-10","2025-05-13"],
+        "temp_c": { "min": 7, "max": 15, "mean": 12 },
+        "precip_mm": 45.2,
+        "pop": null,
+        "condition": "Historical normals"
+      }
+    }
+  }
+  ```
+- 오류 코드:
+  - `400 invalid_years_range`, `400 invalid_aggregation`
+  - `409 trip_duration_required`
+  - `422 destination_missing`, `422 destination_coordinates_unavailable`
+  - `503 meteostat_api_key_missing`, `503 meteostat_unavailable`
+  - `503 llm_unavailable`, `502 llm_invalid_payload`
+
+### 8.1 `GET /v1/climate/trips/{trip_id}/recent`
+- Query
+  - `years` (기본 3, 1~5): 현재 Meteostat 기본 normals(1991–2020 등)를 사용하므로 계산에는 영향이 없으며, 향후 커스텀 기간 옵션을 위한 자리입니다.
+  - `aggregation` (`weighted` | `simple`, 기본 weighted): 여행 구간 내 월별 일수 비중을 반영할지 여부
+- 전제 조건: 트립에 `start_date`, `end_date`, `to_airport`가 모두 존재해야 하며, 누락 시 `409 trip_duration_required` 또는 `422 destination_missing`.
+- 처리 흐름:
+  1. Trip 목적지 공항 → AirLabs `airports` API를 통해 위경도/고도를 조회하고 Redis에 7일 캐시. 키가 없으면 로컬 공항 디렉터리(airportsdata)로 폴백. [AirLabs 문서](https://airlabs.co/api/v9/airports?iata_code=CDG&api_key=34d9c533-a58e-4c42-8650-38629651728e)
+  2. 해당 좌표를 Meteostat Point Normals API(`GET https://meteostat.p.rapidapi.com/point/normals`)에 전달해 월별 평균 기온·강수량 등을 얻는다. `years` 파라미터는 `start`, `end` 연도로 변환되어 API에 전달된다. [Meteostat Point Normals](https://dev.meteostat.net/api/point/normals.html)
+  3. 응답 중 여행 기간에 해당하는 월만 추려 월별 요약(`months_breakdown`)을 만들고, 사용자가 선택한 aggregation 방식에 따라 최종 `recent_stats`를 계산한다.
+- Response 예시:
+```
+{
+  "trip_id": 42,
+  "input": {
+    "latitude": 48.86,
+    "longitude": 2.35,
+    "start": "2025-05-10",
+    "end": "2025-06-02",
+    "years": 3,
+    "aggregation": "weighted"
+  },
+  "point": { "latitude": 48.86, "longitude": 2.35, "altitude_m": 65.0 },
+  "period": { "months": [5,6], "days_per_month": {"5":22,"6":2}, "total_days": 24 },
+  "basis": "point-normals(2022-2024)",
+  "recent_stats": {
+    "t_mean_c": 17.3,
+    "t_min_c": 11.0,
+    "t_max_c": 22.1,
+    "precip_days": 11.4,
+    "precip_sum_mm": 96.2
+  },
+  "months_breakdown": [
+    { "month": 5, "t_mean_c": 16.8, "t_min_c": 11.2, "t_max_c": 21.0, "precip_sum_mm": 62.3 },
+    { "month": 6, "t_mean_c": 18.5, "t_min_c": 12.0, "t_max_c": 23.5, "precip_sum_mm": 33.9 }
+  ],
+  "used_years": [2022, 2024],
+  "degraded": false,
+  "source": ["Meteostat Point Normals (48.86,2.35)"],
+  "generated_at": "2025-11-23T07:58:00Z"
+}
+```
+- 오류 코드:
+  - `400 invalid_years_range`, `400 invalid_aggregation`, `400 invalid_date_range`
+  - `409 trip_duration_required`
+  - `422 destination_missing`, `422 destination_coordinates_unavailable`
+  - `503 meteostat_api_key_missing`, `503 meteostat_unavailable`, `503 meteostat_no_data`
+
 | 레퍼런스 | `GET /v1/reference/cabin_classes` | 좌석 등급 목록(airline_code=KE/TW 등으로 항공사별 조회) |
 | 가방 | `PATCH /v1/bags/{bag_id}` | 이름/정렬 순서/타입(커스텀 가방만) 수정 |
 | 가방 | `DELETE /v1/bags/{bag_id}` | 기본 가방 제외 삭제 |

@@ -14,6 +14,7 @@ from app.schemas.trip import (
     ItinerarySnapshot,
     TripCreate,
     TripDetail,
+    TripDurationUpdate,
     TripItemListItem,
     TripItemsListResponse,
     TripListItem,
@@ -45,6 +46,7 @@ class TripService:
 
         self._validate_date_range(trip)
         self._infer_countries_and_route(trip)
+        self._refresh_duration_flag(trip)
         self._ensure_default_bags(trip)
 
         self.db.add(trip)
@@ -63,11 +65,37 @@ class TripService:
 
         self._validate_date_range(trip)
         self._infer_countries_and_route(trip)
+        self._refresh_duration_flag(trip)
         self._ensure_default_bags(trip)
 
         self.db.commit()
         self.db.refresh(trip)
         return self._build_trip_detail(trip)
+
+    def update_duration(self, trip_id: int, payload: TripDurationUpdate) -> Trip:
+        trip = self._get_trip_for_user(trip_id)
+
+        updated = False
+        if payload.start_date is not None:
+            trip.start_date = payload.start_date
+            updated = True
+        if payload.end_date is not None:
+            trip.end_date = payload.end_date
+            updated = True
+
+        if not updated:
+            raise HTTPException(status_code=400, detail="duration_missing")
+
+        self._validate_date_range(trip)
+        if trip.start_date is None or trip.end_date is None:
+            raise HTTPException(status_code=400, detail="duration_incomplete")
+
+        self._refresh_duration_flag(trip)
+        self._infer_countries_and_route(trip)
+
+        self.db.commit()
+        self.db.refresh(trip)
+        return trip
 
     def list_trips(self, status_filter: TripStatusFilter, limit: int, offset: int) -> TripListResponse:
         query = select(Trip).where(Trip.user_id == self.auth.user.user_id)
@@ -94,6 +122,7 @@ class TripService:
                     from_airport=trip.from_airport,
                     to_airport=trip.to_airport,
                     active=bool(trip.active),
+                    needs_duration=bool(trip.needs_duration),
                     archived_at=trip.archived_at,
                 )
                 for trip in items
@@ -316,6 +345,9 @@ class TripService:
         if trip.start_date and trip.end_date and trip.start_date > trip.end_date:
             raise HTTPException(status_code=400, detail="invalid_date_range")
 
+    def _refresh_duration_flag(self, trip: Trip) -> None:
+        trip.needs_duration = not (trip.start_date is not None and trip.end_date is not None)
+
     def _infer_countries_and_route(self, trip: Trip) -> None:
         trip.country_from = self._country_for_airport(trip.from_airport)
         trip.country_to = self._country_for_airport(trip.to_airport)
@@ -363,6 +395,7 @@ class TripService:
             start_date=trip.start_date,
             end_date=trip.end_date,
             active=bool(trip.active),
+            needs_duration=bool(trip.needs_duration),
             tags=list(trip.tags_json or []),
             itinerary=itinerary,
             stats=stats,

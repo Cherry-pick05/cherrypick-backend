@@ -1,11 +1,14 @@
-from fastapi import FastAPI, Request
-from starlette.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+import logging
 
-from app.core.config import settings
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
+
 from app.api.routes import api_router
+from app.core.config import settings
 
 def create_app() -> FastAPI:
+    logging.basicConfig(level=logging.INFO)
     app = FastAPI(title=settings.app_name)
     # CORS
     # "*"일 때는 allow_credentials를 False로 설정 (FastAPI 제약)
@@ -21,7 +24,6 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
     # Simple client id injection
     @app.middleware("http")
     async def inject_client_id(request: Request, call_next):

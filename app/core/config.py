@@ -80,6 +80,11 @@ class Settings(BaseSettings):
     airlabs_api_base_url: str = "https://airlabs.co/api/v9"
     airlabs_timeout_sec: float = 6.0
 
+    # Meteostat climate data
+    meteostat_api_key: str | None = None
+    meteostat_base_url: str = "https://meteostat.p.rapidapi.com"
+    meteostat_timeout_sec: float = 6.0
+
     safe_mode_default: bool = True
     supported_locales: list[str] = ["ko-KR", "en-US"]
     units_defaults: dict[str, str] = {"weight": "kg", "length": "cm"}

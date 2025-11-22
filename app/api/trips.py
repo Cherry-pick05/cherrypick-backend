@@ -1,14 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import DeviceAuthContext, require_device_auth
+from app.db.models.trip import Trip
 from app.db.session import get_db
 from app.schemas.flight import FlightLookupRequest, FlightLookupResponse
-from app.schemas.recommendation import TripRecommendationResponse
-from app.schemas.trip import TripCreate, TripDetail, TripItemsListResponse, TripListResponse
+from app.schemas.recommendation import (
+    OutfitRecommendationRequest,
+    OutfitRecommendationResponse,
+    TripRecommendationResponse,
+)
+from app.schemas.trip import (
+    TripCreate,
+    TripDetail,
+    TripDurationStatus,
+    TripDurationUpdate,
+    TripItemsListResponse,
+    TripListResponse,
+)
 from app.services.recommendation import RecommendationService
 from app.services.flight_lookup import FlightLookupError, FlightLookupService
 from app.services.trip_service import TripService, TripStatusFilter
+from app.services.outfit_recommendation import OutfitRecommendationService
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -50,6 +63,21 @@ def list_trips(
 @router.get("/{trip_id}", response_model=TripDetail)
 def get_trip_detail(trip_id: int, service: TripService = Depends(get_trip_service)) -> TripDetail:
     return service.get_trip_detail(trip_id)
+
+
+@router.patch("/{trip_id}/duration", response_model=TripDurationStatus)
+def update_trip_duration(
+    trip_id: int,
+    payload: TripDurationUpdate,
+    service: TripService = Depends(get_trip_service),
+) -> TripDurationStatus:
+    trip = service.update_duration(trip_id, payload)
+    return TripDurationStatus(
+        trip_id=trip.trip_id,
+        start_date=trip.start_date,
+        end_date=trip.end_date,
+        needs_duration=bool(trip.needs_duration),
+    )
 
 
 @router.get("/{trip_id}/items", response_model=TripItemsListResponse)
@@ -100,4 +128,19 @@ def get_trip_recommendation(
 
     service = RecommendationService()
     return service.build(trip)
+
+
+@router.post(
+    "/{trip_id}/recommendations/outfit",
+    response_model=OutfitRecommendationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def generate_outfit_recommendation(
+    trip_id: int,
+    payload: OutfitRecommendationRequest = Body(default_factory=OutfitRecommendationRequest),
+    auth: DeviceAuthContext = Depends(require_device_auth),
+    db: Session = Depends(get_db),
+) -> OutfitRecommendationResponse:
+    service = OutfitRecommendationService(db, auth)
+    return service.recommend(trip_id, payload)
 
