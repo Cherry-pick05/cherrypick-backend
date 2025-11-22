@@ -56,6 +56,12 @@ class Trip(Base):
         cascade="all, delete-orphan",
         order_by="TripViaAirport.via_order",
     )
+    bags: Mapped[list["Bag"]] = relationship(
+        "Bag",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+        order_by="Bag.sort_order",
+    )
 
 
 class TripSegment(Base):

@@ -9,8 +9,9 @@ from pydantic import BaseModel, Field, constr
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.api.deps import DeviceAuthContext, require_device_auth
 from app.core.config import settings
-from app.db.models import RegulationMatch
+from app.db.models import Bag, BagItem, RegulationMatch
 from app.db.session import get_db
 from app.schemas.decision import DecisionPayload, DecisionSlot, RuleEngineRequest, RuleEngineResponse
 from app.schemas.preview import (
@@ -68,7 +69,7 @@ def classify_item(req: ClassificationRequest, db: Session = Depends(get_db)) -> 
 
     result = classify_label(label, locale=req.locale)
     req_id = req.req_id or uuid.uuid4().hex
-    _persist_match(db, req_id, result)
+    # Note: 저장은 사용자가 명시적으로 /items/save를 호출할 때만 수행됩니다.
 
     return ClassificationResponse(
         req_id=req_id,
@@ -165,25 +166,99 @@ def preview_item(req: PreviewRequest, db: Session = Depends(get_db)) -> PreviewR
     )
 
 
-def _persist_match(db: Session, req_id: str, result: ClassificationResult) -> None:
+class SaveItemRequest(BaseModel):
+    req_id: str
+    preview: PreviewResponse
+    bag_id: int
+    image_id: int | None = None
+    trip_id: int | None = None
+
+
+@router.post("/save", status_code=status.HTTP_201_CREATED)
+def save_item(
+    req: SaveItemRequest,
+    db: Session = Depends(get_db),
+    auth: DeviceAuthContext = Depends(require_device_auth),
+) -> dict:
+    """사용자가 preview 결과를 저장합니다. user_id, trip_id, image_id와 연결됩니다."""
+    preview = req.preview
+    resolved = preview.resolved
+    engine = preview.engine
+
+    # status 결정: engine의 decision에서 추출
+    status_value = None
+    if engine and engine.decision:
+        carry_on_status = engine.decision.carry_on.status
+        checked_status = engine.decision.checked.status
+        # 둘 다 deny면 ban, 하나라도 limit면 limited, 둘 다 allow면 allow
+        if carry_on_status == "deny" or checked_status == "deny":
+            status_value = "ban"
+        elif carry_on_status == "limit" or checked_status == "limit":
+            status_value = "limited"
+        elif carry_on_status == "allow" and checked_status == "allow":
+            status_value = "allow"
+
+    bag = db.get(Bag, req.bag_id)
+    if not bag or bag.user_id != auth.user.user_id:
+        raise HTTPException(status_code=404, detail="bag_not_found")
+
+    trip_id = req.trip_id or bag.trip_id
+    if not trip_id:
+        raise HTTPException(status_code=400, detail="trip_id_required")
+    if bag.trip_id != trip_id:
+        raise HTTPException(status_code=400, detail="bag_trip_mismatch")
+
+    preview_data = {
+        "preview_response": preview.model_dump(),
+        "engine_response": engine.model_dump() if engine else None,
+        "narration": preview.narration.model_dump() if preview.narration else None,
+        "ai_tips": [tip.model_dump() for tip in preview.ai_tips],
+        "flags": preview.flags,
+    }
+
     record = RegulationMatch(
-        req_id=req_id,
-        raw_label=result.raw_label,
-        norm_label=result.norm_label,
-        canonical_key=result.canonical,
-        candidates_json=result.categories,
-        details=result.signals,
-        confidence=result.confidence,
-        decided_by=result.decided_by,
-        model_info=result.model_info,
+        req_id=req.req_id,
+        user_id=auth.user.user_id,
+        trip_id=trip_id,
+        image_id=req.image_id,
+        raw_label=resolved.label,
+        norm_label=resolved.label,  # TODO: normalize 필요시 수정
+        canonical_key=resolved.canonical,
+        status=status_value,
+        confidence=None,  # engine에서 추출 가능하지만 일단 None
+        decided_by="user",
         source="manual",
+        details=preview_data,
     )
+
     try:
         db.add(record)
+        db.flush()
+
+        bag_item = BagItem(
+            user_id=auth.user.user_id,
+            trip_id=trip_id,
+            bag_id=bag.bag_id,
+            regulation_match_id=record.id,
+            title=resolved.canonical or resolved.label,
+            status="todo",
+            quantity=1,
+            preview_snapshot=preview_data,
+        )
+        db.add(bag_item)
         db.commit()
-    except SQLAlchemyError as exc:  # pragma: no cover - logging best-effort
+        db.refresh(record)
+        db.refresh(bag_item)
+        return {
+            "match_id": record.id,
+            "bag_item_id": bag_item.item_id,
+            "req_id": req.req_id,
+            "saved": True,
+        }
+    except SQLAlchemyError as exc:
         db.rollback()
-        logger.warning("Failed to persist classification match (req_id=%s): %s", req_id, exc)
+        logger.exception("Failed to save item preview (req_id=%s): %s", req.req_id, exc)
+        raise HTTPException(status_code=500, detail="failed_to_save_item")
 
 
 # 규정 매칭 결과 조회 (stub)

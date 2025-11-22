@@ -38,9 +38,10 @@
 - 디바이스 토큰 기반 인증
 - 사용자 동의 관리
 
-### 5. 여정 관리
+### 5. 여정 & 패킹 리스트 관리
 - 여정 및 구간(Segment) 정보 관리
 - 경유지 재검색(LAGs) 조건 처리
+- 트립별 가방(기내/위탁 기본 포함)과 체크리스트 아이템 관리
 
 ### 6. 추천 시스템
 - LLM 기반 수하물 추천
@@ -213,6 +214,9 @@ poetry run alembic upgrade head
 - `POST /v1/items` - 아이템 분류 요청
 - `GET /v1/trips` - 여정 조회
 - `POST /v1/trips` - 여정 생성
+- `GET /v1/trips/{trip_id}/bags` - 트립별 가방/체크리스트 조회
+- `POST /v1/trips/{trip_id}/bags` - 가방 생성
+- `PATCH /v1/bag-items/{item_id}` - 체크리스트 아이템 수정(상태/수량/가방 이동)
 - `POST /v1/media/upload` - 이미지 업로드
 - `WS /v1/ws` - WebSocket 연결
 - `GET /v1/countries` - 국가 레퍼런스 목록(검색/지역 필터)
@@ -228,8 +232,9 @@ cherrypick-backend/
 │   ├── api/              # API 라우터
 │   │   ├── bootstrap.py  # 디바이스 부트스트랩
 │   │   ├── devices.py    # 디바이스 관리
-│   │   ├── items.py      # 아이템 분류
+│   │   ├── items.py      # 아이템 분류/저장
 │   │   ├── trips.py      # 여정 관리
+│   │   ├── bags.py       # 가방·체크리스트 API
 │   │   ├── media.py      # 미디어 업로드
 │   │   ├── ws.py         # WebSocket
 │   │   └── routes.py      # 라우터 통합
@@ -243,6 +248,7 @@ cherrypick-backend/
 │   ├── schemas/          # Pydantic 스키마
 │   │   ├── decision.py   # 판정 스키마
 │   │   ├── preview.py    # 미리보기 스키마
+│   │   ├── checklist.py  # 가방/체크리스트 스키마
 │   │   └── recommendation.py  # 추천 스키마
 │   ├── services/         # 비즈니스 로직
 │   │   ├── llm_classifier.py      # LLM 분류기
@@ -250,6 +256,7 @@ cherrypick-backend/
 │   │   ├── rule_engine.py         # 규칙 엔진
 │   │   ├── risk_guard.py          # 위험 가드
 │   │   ├── recommendation.py      # 추천 시스템
+│   │   ├── bag_service.py         # 가방/체크리스트 서비스 로직
 │   │   ├── regulation_*.py        # 규정 관리
 │   │   └── ...
 │   ├── tasks/            # 백그라운드 작업

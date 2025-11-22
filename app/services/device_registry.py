@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.models import (
+    Bag,
+    BagItem,
     DeviceRecoveryCode,
     ItemImage,
     RegulationMatch,
@@ -217,7 +219,7 @@ class DeviceRegistry:
     def _merge_users(self, primary: User, secondary: User) -> None:
         if primary.user_id == secondary.user_id:
             return
-        for model in (Trip, ItemImage, RegulationMatch):
+        for model in (Trip, Bag, BagItem, ItemImage, RegulationMatch):
             self.db.execute(
                 update(model)
                 .where(model.user_id == secondary.user_id)

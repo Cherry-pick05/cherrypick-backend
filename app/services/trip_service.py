@@ -8,7 +8,7 @@ from sqlalchemy import desc, func, select, text
 from sqlalchemy.orm import Session
 
 from app.api.deps import DeviceAuthContext
-from app.db.models import ItemImage, RegulationMatch
+from app.db.models import Bag, BagItem, ItemImage, RegulationMatch
 from app.db.models.trip import Trip, TripSegment, TripViaAirport
 from app.schemas.trip import (
     ItinerarySnapshot,
@@ -24,6 +24,7 @@ from app.schemas.trip import (
     TripUpdate,
 )
 from app.services.airport_lookup import get_country_code
+from app.services.bag_service import apply_default_bags
 
 TripStatusFilter = Literal["active", "archived", "all"]
 
@@ -45,6 +46,7 @@ class TripService:
 
         self._validate_date_range(trip)
         self._infer_countries_and_route(trip)
+        apply_default_bags(self.db, self.auth, trip)
 
         self.db.add(trip)
         self.db.commit()
@@ -62,6 +64,7 @@ class TripService:
 
         self._validate_date_range(trip)
         self._infer_countries_and_route(trip)
+        apply_default_bags(self.db, self.auth, trip)
 
         self.db.commit()
         self.db.refresh(trip)
@@ -109,16 +112,18 @@ class TripService:
         trip = self._get_trip_for_user(trip_id)
 
         query = (
-            select(RegulationMatch)
+            select(BagItem, Bag, RegulationMatch)
+            .join(Bag, BagItem.bag_id == Bag.bag_id)
+            .outerjoin(RegulationMatch, BagItem.regulation_match_id == RegulationMatch.id)
             .where(
-                RegulationMatch.trip_id == trip_id,
-                RegulationMatch.user_id == self.auth.user.user_id,
+                BagItem.trip_id == trip.trip_id,
+                BagItem.user_id == self.auth.user.user_id,
             )
-            .order_by(desc(RegulationMatch.matched_at))
+            .order_by(desc(BagItem.updated_at))
             .offset(offset)
             .limit(limit + 1)
         )
-        rows = self.db.scalars(query).all()
+        rows = self.db.execute(query).all()
 
         has_more = len(rows) > limit
         items = rows[:limit]
@@ -126,17 +131,21 @@ class TripService:
         return TripItemsListResponse(
             items=[
                 TripItemListItem(
-                    match_id=match.id,
-                    raw_label=match.raw_label,
-                    norm_label=match.norm_label,
-                    canonical_key=match.canonical_key,
-                    status=match.status,  # type: ignore[arg-type]
-                    confidence=float(match.confidence) if match.confidence else None,
-                    decided_by=match.decided_by,
-                    image_id=match.image_id,
-                    matched_at=match.matched_at,
+                    item_id=item.item_id,
+                    bag_id=item.bag_id,
+                    bag_name=bag.name,
+                    status=item.status,  # type: ignore[arg-type]
+                    quantity=item.quantity,
+                    title=item.title,
+                    note=item.note,
+                    regulation_match_id=item.regulation_match_id,
+                    canonical_key=match.canonical_key if match else None,
+                    raw_label=match.raw_label if match else None,
+                    norm_label=match.norm_label if match else None,
+                    preview_snapshot=item.preview_snapshot,
+                    updated_at=item.updated_at,
                 )
-                for match in items
+                for item, bag, match in items
             ],
             next_offset=(offset + len(items)) if has_more else None,
             has_more=has_more,
@@ -385,12 +394,8 @@ class TripService:
         )
 
     def _fetch_trip_stats(self, trip_id: int) -> TripStats:
-        items_scanned = self.db.scalar(
-            select(func.count()).select_from(RegulationMatch).where(RegulationMatch.trip_id == trip_id)
-        )
-        last_match = self.db.scalar(
-            select(func.max(RegulationMatch.matched_at)).where(RegulationMatch.trip_id == trip_id)
-        )
+        items_scanned = self.db.scalar(select(func.count()).select_from(BagItem).where(BagItem.trip_id == trip_id))
+        last_match = self.db.scalar(select(func.max(BagItem.updated_at)).where(BagItem.trip_id == trip_id))
         last_image = self.db.scalar(
             select(func.max(ItemImage.created_at)).where(ItemImage.trip_id == trip_id)
         )

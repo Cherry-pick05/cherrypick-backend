@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.bags import router as bags_router
 from app.api.bootstrap import router as bootstrap_router
 from app.api.devices import router as devices_router
 from app.api.items import router as items_router
@@ -19,3 +20,4 @@ api_router.include_router(ws_router)
 api_router.include_router(items_router)
 api_router.include_router(reference_router)
 api_router.include_router(trips_router)
+api_router.include_router(bags_router)

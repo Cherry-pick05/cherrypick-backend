@@ -2,6 +2,7 @@ from app.db.models.device_recovery_code import DeviceRecoveryCode
 from app.db.models.airport import Airport
 from app.db.models.country import Country
 from app.db.models.item_image import ItemImage
+from app.db.models.bag import Bag, BagItem
 from app.db.models.regulation import (
     RegulationMatch,
     RuleSet,
@@ -29,6 +30,8 @@ __all__ = [
     "DeviceRecoveryCode",
     "UserConsent",
     "ItemImage",
+    "Bag",
+    "BagItem",
     "RegulationMatch",
     "RuleSet",
     "ItemRule",

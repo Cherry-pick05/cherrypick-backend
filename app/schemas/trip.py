@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, constr
 
+from app.schemas.checklist import BagItemStatus
 
 class TripSegmentInput(BaseModel):
     leg: constr(strip_whitespace=True, min_length=7)  # type: ignore[valid-type]
@@ -101,15 +102,19 @@ class TripListResponse(BaseModel):
 
 
 class TripItemListItem(BaseModel):
-    match_id: int
+    item_id: int
+    bag_id: int
+    bag_name: str
+    title: str | None = None
+    status: BagItemStatus
+    quantity: int
+    note: str | None = None
+    regulation_match_id: int | None = None
     raw_label: str | None = None
     norm_label: str | None = None
     canonical_key: str | None = None
-    status: Literal["allow", "ban", "limited"] | None = None
-    confidence: float | None = None
-    decided_by: str
-    image_id: int | None = None
-    matched_at: datetime | None = None
+    preview_snapshot: dict | None = None
+    updated_at: datetime | None = None
 
 
 class TripItemsListResponse(BaseModel):
