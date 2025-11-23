@@ -33,6 +33,7 @@ def create_app() -> FastAPI:
         try:
             response = await call_next(request)
         except Exception as exc:
+            logging.exception("Unhandled exception in request")
             return JSONResponse(status_code=500, content={"detail": "internal_error"})
         return response
     app.include_router(api_router)

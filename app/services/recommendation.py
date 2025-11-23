@@ -11,7 +11,7 @@ from app.schemas.recommendation import (
     TripRecommendationResponse,
     WeatherInfo,
 )
-from app.services.exchange_client import KoreaEximClient
+from app.services.frankfurter_client import FrankfurterClient
 from app.services.recommendation_llm import (
     RecommendationPromptContext,
     generate_recommendation_sections,
@@ -52,13 +52,13 @@ class RecommendationContext:
 class RecommendationService:
     def __init__(self) -> None:
         self.weather_client = WeatherClient()
-        self.fx_client = KoreaEximClient()
+        self.fx_client = FrankfurterClient()
 
     def build(self, trip: Trip) -> TripRecommendationResponse:
         currency_code = self._currency_for_country(trip.country_code2)
         travel_window = self._window_label(trip.start_date, trip.end_date)
         weather_raw = self.weather_client.fetch_current(trip.city, trip.country_code2)
-        exchange_raw = self.fx_client.fetch_rate(currency_code)
+        exchange_raw = self._fetch_currency_rate(currency_code)
         sections = generate_recommendation_sections(
             RecommendationPromptContext(
                 city=trip.city,
@@ -118,4 +118,46 @@ class RecommendationService:
         if end:
             return f"{end.isoformat()} 귀국"
         return None
+
+    def _fetch_currency_rate(self, currency_code: str) -> Dict[str, Any] | None:
+        """
+        Fetch currency rate and convert to KRW base.
+
+        Uses USD as intermediate base: fetch USD->currency and USD->KRW,
+        then calculate currency->KRW = (USD->KRW) / (USD->currency)
+        """
+        # Fetch both rates in one call if possible, or two separate calls
+        target_upper = currency_code.upper()
+
+        # Get USD -> target currency rate
+        quote = self.fx_client.fetch_latest("USD", [target_upper])
+        if not quote or not quote.get("rates"):
+            return None
+        usd_to_target = quote["rates"].get(target_upper)
+        if not usd_to_target:
+            return None
+
+        # Get USD -> KRW rate
+        krw_quote = self.fx_client.fetch_latest("USD", ["KRW"])
+        if not krw_quote or not krw_quote.get("rates"):
+            return None
+        usd_to_krw = krw_quote["rates"].get("KRW")
+        if not usd_to_krw:
+            return None
+
+        # Calculate: 1 target_currency = ? KRW
+        # If 1 USD = X target_currency, and 1 USD = Y KRW, then 1 target_currency = Y/X KRW
+        krw_per_currency = usd_to_krw / usd_to_target
+
+        # Get currency name from currencies list
+        currencies = self.fx_client.get_currencies()
+        currency_name = currencies.get(target_upper, target_upper) if currencies else target_upper
+
+        return {
+            "currency_code": target_upper,
+            "currency_name": currency_name,
+            "rate": round(krw_per_currency, 2),
+            "base": "KRW",
+            "date": quote.get("as_of"),
+        }
 

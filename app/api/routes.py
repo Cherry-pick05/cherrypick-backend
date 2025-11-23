@@ -4,6 +4,7 @@ from app.api.bags import router as bags_router
 from app.api.bootstrap import router as bootstrap_router
 from app.api.climate import router as climate_router
 from app.api.devices import router as devices_router
+from app.api.fx import router as fx_router
 from app.api.items import router as items_router
 from app.api.media import router as media_router
 from app.api.public.health import router as health_router
@@ -25,5 +26,6 @@ v1_router.include_router(reference_router)
 v1_router.include_router(climate_router)
 v1_router.include_router(trips_router)
 v1_router.include_router(bags_router)
+v1_router.include_router(fx_router)
 
 api_router.include_router(v1_router)

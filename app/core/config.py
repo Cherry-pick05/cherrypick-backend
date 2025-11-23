@@ -66,10 +66,11 @@ class Settings(BaseSettings):
     weather_lang: str = "kr"
     weather_timeout_sec: float = 5.0
 
-    koreaexim_api_key: str | None = None
-    koreaexim_api_base_url: str = "https://www.koreaexim.go.kr/site/program/financial/exchangeJSON"
-    koreaexim_default_data: str = "AP01"
-    exchange_timeout_sec: float = 5.0
+    # Frankfurter API (ECB reference rates)
+    frankfurter_api_base_url: str = "https://api.frankfurter.dev"
+    frankfurter_timeout_sec: float = 5.0
+    fx_cache_ttl_latest_sec: int = 60  # 1 minute for latest rates
+    fx_cache_ttl_historical_sec: int = 60 * 60 * 24  # 24 hours for historical rates
 
     molit_service_key: str | None = None
     molit_airport_dataset_id: str = "uddi:12f91d16-ea50-48d1-bdc3-df8410f22542"
@@ -93,6 +94,10 @@ class Settings(BaseSettings):
     ab_test_buckets: list[str] = ["control", "variant"]
     rules_manifest_version: str = "2024-11-01"
     taxonomy_manifest_version: str = "2024-11-01"
+    
+    # 서비스 중인 국가 목록 (ISO 3166-1 alpha-2 코드)
+    # active_only=True일 때 이 목록에 있는 국가만 반환됩니다
+    supported_countries: list[str] = ["KR", "US"]
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 

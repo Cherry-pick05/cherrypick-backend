@@ -16,6 +16,7 @@ from app.core.cache import cached_json, get_redis
 from app.core.config import settings
 from app.db.models.airport import Airport
 from app.db.models.country import Country
+from app.db.models.regulation import RuleSet
 
 
 logger = logging.getLogger(__name__)
@@ -209,9 +210,30 @@ class CountryDirectoryService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list(self) -> List[dict]:
+    def _get_active_country_codes(self) -> set[str]:
+        """DB에 규정이 있는 서비스 중인 국가 코드 목록을 반환합니다."""
+        rows = self.db.scalars(
+            select(RuleSet.code).where(RuleSet.scope == "country")
+        ).all()
+        # code에서 국가 코드 부분만 추출 (예: "US_TSA" -> "US", "KR" -> "KR")
+        db_codes = set()
+        for code in rows:
+            code_upper = code.upper()
+            # 언더스코어로 분리하여 첫 번째 부분을 국가 코드로 사용
+            country_code = code_upper.split("_")[0]
+            db_codes.add(country_code)
+        # 설정에 명시된 서비스 중인 국가만 필터링
+        supported = {code.upper() for code in settings.supported_countries}
+        return db_codes & supported
+
+    def list(self, active_only: bool = True) -> List[dict]:
         def loader() -> List[dict]:
-            rows = self.db.scalars(select(Country).order_by(Country.name_en)).all()
+            query = select(Country).order_by(Country.name_en)
+            if active_only:
+                active_codes = self._get_active_country_codes()
+                if active_codes:
+                    query = query.where(Country.code.in_(active_codes))
+            rows = self.db.scalars(query).all()
             return [
                 {
                     "code": row.code,
@@ -222,10 +244,11 @@ class CountryDirectoryService:
                 for row in rows
             ]
 
-        return cached_json(COUNTRY_CACHE_KEY, CACHE_TTL_SECONDS, loader)
+        cache_key = f"{COUNTRY_CACHE_KEY}:active" if active_only else COUNTRY_CACHE_KEY
+        return cached_json(cache_key, CACHE_TTL_SECONDS, loader)
 
-    def search(self, q: str | None = None, region: str | None = None) -> List[dict]:
-        records = self.list()
+    def search(self, q: str | None = None, region: str | None = None, active_only: bool = True) -> List[dict]:
+        records = self.list(active_only=active_only)
         q_lower = q.lower().strip() if q else None
         region_lower = region.lower().strip() if region else None
 
@@ -247,9 +270,30 @@ class AirportDirectoryService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list(self) -> List[dict]:
+    def _get_active_country_codes(self) -> set[str]:
+        """DB에 규정이 있고 서비스 중인 국가 코드 목록을 반환합니다."""
+        rows = self.db.scalars(
+            select(RuleSet.code).where(RuleSet.scope == "country")
+        ).all()
+        # code에서 국가 코드 부분만 추출 (예: "US_TSA" -> "US", "KR" -> "KR")
+        db_codes = set()
+        for code in rows:
+            code_upper = code.upper()
+            # 언더스코어로 분리하여 첫 번째 부분을 국가 코드로 사용
+            country_code = code_upper.split("_")[0]
+            db_codes.add(country_code)
+        # 설정에 명시된 서비스 중인 국가만 필터링
+        supported = {code.upper() for code in settings.supported_countries}
+        return db_codes & supported
+
+    def list(self, active_only: bool = True) -> List[dict]:
         def loader() -> List[dict]:
-            rows = self.db.scalars(select(Airport).order_by(Airport.name_en)).all()
+            query = select(Airport).order_by(Airport.name_en)
+            if active_only:
+                active_codes = self._get_active_country_codes()
+                if active_codes:
+                    query = query.where(Airport.country_code.in_(active_codes))
+            rows = self.db.scalars(query).all()
             return [
                 {
                     "iata_code": row.iata_code,
@@ -264,7 +308,8 @@ class AirportDirectoryService:
                 for row in rows
             ]
 
-        return cached_json(AIRPORT_CACHE_KEY, CACHE_TTL_SECONDS, loader)
+        cache_key = f"{AIRPORT_CACHE_KEY}:active" if active_only else AIRPORT_CACHE_KEY
+        return cached_json(cache_key, CACHE_TTL_SECONDS, loader)
 
     def as_index(self) -> Dict[str, dict]:
         def loader() -> Dict[str, dict]:
@@ -278,8 +323,9 @@ class AirportDirectoryService:
         q: str | None = None,
         country_code: str | None = None,
         limit: int | None = None,
+        active_only: bool = True,
     ) -> List[dict]:
-        records = self.list()
+        records = self.list(active_only=active_only)
         q_lower = q.lower().strip() if q else None
         country_lower = country_code.lower().strip() if country_code else None
 

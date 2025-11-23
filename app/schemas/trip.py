@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, constr, model_validator
 
 from app.schemas.checklist import BagItemStatus
 
@@ -76,6 +76,7 @@ class TripDetail(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     active: bool
+    needs_duration: bool
     tags: list[str] = Field(default_factory=list)
     itinerary: ItinerarySnapshot
     stats: TripStats
@@ -92,6 +93,7 @@ class TripListItem(BaseModel):
     from_airport: str | None = None
     to_airport: str | None = None
     active: bool
+    needs_duration: bool
     archived_at: datetime | None = None
 
 
@@ -121,4 +123,24 @@ class TripItemsListResponse(BaseModel):
     items: list[TripItemListItem]
     next_offset: int | None = None
     has_more: bool = False
+
+
+class TripDurationUpdate(BaseModel):
+    start_date: date | None = None
+    end_date: date | None = None
+
+    @model_validator(mode="after")
+    def _validate_dates(self) -> "TripDurationUpdate":
+        if self.start_date is None and self.end_date is None:
+            raise ValueError("at_least_one_field_required")
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            raise ValueError("invalid_date_range")
+        return self
+
+
+class TripDurationStatus(BaseModel):
+    trip_id: int
+    start_date: date | None = None
+    end_date: date | None = None
+    needs_duration: bool
 

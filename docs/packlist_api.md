@@ -291,6 +291,61 @@
 | 아이템 | `POST /v1/items/decide` | (디버깅/내부용) 룰엔진 단독 호출 |
 | 미디어 | `/v1/media/*` | 이미지 업로드, 상태 조회 (패킹 리스트와 간접 연관) |
 
+---
+
+## 10. 환율(FX) API
+
+Frankfurter(ECB reference rates) 단일 소스를 사용하며, 최신 환율은 영업일 16:00 CET 기준 참조치입니다. 내부적으로 Redis 캐시를 사용해 최신 60초, 과거 24시간 TTL을 적용합니다.
+
+### 10.1 `GET /v1/fx/quote`
+- Query: `base=USD`, `symbols=KRW,JPY`
+- Response:
+  ```json
+  {
+    "as_of": "2025-11-21",
+    "base": "USD",
+    "rates": { "KRW": 1474.29, "JPY": 156.74 },
+    "source": "ECB via Frankfurter"
+  }
+  ```
+- 주의: 주말/공휴일에는 직전 영업일 기준 `as_of`가 반환됩니다.
+
+### 10.2 `POST /v1/fx/convert`
+- Body: `{ "amount": 120.5, "base": "USD", "symbol": "KRW" }`
+- 내부적으로 `/quote` 캐시를 사용해 `converted = round(amount * rate, 2)`
+- Response:
+  ```json
+  {
+    "base": "USD",
+    "symbol": "KRW",
+    "amount": 120.5,
+    "rate": 1474.29,
+    "converted": 177698.75,
+    "as_of": "2025-11-21",
+    "source": "ECB via Frankfurter"
+  }
+  ```
+
+### 10.3 `GET /v1/fx/quote/date`
+- Query: `date=2025-01-15`, `base=USD`, `symbols=KRW`
+- 미래 날짜 지정 시 `400 invalid_date`
+- 과거 영업일 데이터는 Frankfurter `/v1/{date}`를 그대로 프록시
+
+### 10.4 `POST /v1/fx/convert/date`
+- Body: `{ "date": "2025-01-15", "amount": 1, "base": "USD", "symbol": "KRW" }`
+- 주말/공휴일이면 직전 영업일 환율을 사용
+
+### 10.5 `GET /v1/fx/currencies`
+- Response: `{ "currencies": { "USD": "United States Dollar", "KRW": "South Korean Won", ... } }`
+- 캐시 TTL 24시간. 프런트에서 통화 선택 UI에 사용
+
+#### 공통 오류 코드
+| 코드 | 설명 |
+| --- | --- |
+| `invalid_currency` | 지원하지 않는 통화 코드 |
+| `invalid_date` | 미래 일자 또는 형식 오류 |
+| `service_unavailable` | Frankfurter 응답 실패/타임아웃 |
+
 위 목록은 현재 코드베이스에서 정상 동작 중인 API만 포함했으며, 새로운 엔드포인트가 추가되면 이 섹션 또한 함께 갱신해 주세요.
 
 이 문서는 `2025-11-22` 기준 코드(`main` 브랜치)와 동일합니다. 새로운 엔드포인트가 추가되거나 스키마가 변경되면 본 파일을 함께 업데이트 해주세요.

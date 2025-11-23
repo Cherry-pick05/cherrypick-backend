@@ -33,6 +33,7 @@ class Trip(Base):
     route_type: Mapped[str | None] = mapped_column(Enum("domestic", "international", name="trip_route_type"))
     start_date: Mapped[date | None] = mapped_column(Date)
     end_date: Mapped[date | None] = mapped_column(Date)
+    needs_duration: Mapped[bool] = mapped_column(Boolean, server_default=sa.true(), nullable=False)
     active: Mapped[bool] = mapped_column(Boolean, server_default=sa.false())
     tags_json: Mapped[dict | list | None] = mapped_column(JSON)
     archived_at: Mapped[datetime | None] = mapped_column(TIMESTAMP)

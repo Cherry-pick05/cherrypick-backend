@@ -173,7 +173,9 @@ LLM_CLASSIFIER_CONFIDENCE_THRESHOLD=0.7
 
 # 외부 API
 WEATHER_API_KEY=your_openweather_api_key
-KOREAEXIM_API_KEY=your_koreaexim_authkey
+
+# Frankfurter API (ECB reference rates - no API key required)
+FRANKFURTER_API_BASE_URL=https://api.frankfurter.dev
 
 # 국토교통부 세계공항 데이터
 MOLIT_SERVICE_KEY=72e8af88c6a182885c860951dc2f997b312678d084836403dbd4b874b2e334cf

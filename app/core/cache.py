@@ -25,14 +25,19 @@ def cached_json(key: str, ttl_seconds: int, loader: Callable[[], Any]):
         cached = None
     if cached is not None:
         try:
-            return json.loads(cached)
+            decoded = json.loads(cached)
+            # Don't return cached None values (errors)
+            if decoded is not None:
+                return decoded
         except json.JSONDecodeError:
             pass
     data = loader()
-    try:
-        r.setex(key, ttl_seconds, json.dumps(data))
-    except RedisError:
-        pass
+    # Only cache non-None values (successful responses)
+    if data is not None:
+        try:
+            r.setex(key, ttl_seconds, json.dumps(data))
+        except RedisError:
+            pass
     return data
 
 
