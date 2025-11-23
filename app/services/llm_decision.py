@@ -63,41 +63,63 @@ def _repair_matched_terms(response_text: str, preview: PreviewRequest) -> str | 
         data = json.loads(response_text)
     except json.JSONDecodeError:
         return None
+
     signals = data.get("signals")
     if not isinstance(signals, dict):
         return None
+
     terms = signals.get("matched_terms")
     if not isinstance(terms, list):
         terms = []
+
     cleaned = [token.strip() for token in terms if isinstance(token, str) and token.strip()]
     if len(cleaned) >= 2:
         return None
-    extra_terms: list[str] = []
-    candidates = [preview.label, normalize_label(preview.label)]
-    for value in candidates:
+
+    def _tokenize(value: str | None) -> list[str]:
         if not value:
-            continue
-        for token in value.split():
-            token = token.strip()
-            if not token or token in cleaned or token in extra_terms:
+            return []
+        stripped = value.strip()
+        if not stripped:
+            return []
+        tokens = [token.strip() for token in stripped.split() if token.strip()]
+        if len(tokens) >= 2:
+            return tokens
+        if len(stripped) <= 4:
+            return [char for char in stripped if char.strip()]
+        midpoint = max(1, len(stripped) // 2)
+        return [stripped[:midpoint], stripped[midpoint:]]
+
+    extra_terms: list[str] = []
+
+    def _add_tokens(tokens: list[str]) -> None:
+        for token in tokens:
+            if not token:
+                continue
+            if token in cleaned or token in extra_terms:
                 continue
             extra_terms.append(token)
-            if len(cleaned) + len(extra_terms) >= 2:
-                break
+            if len(cleaned) + len(extra_terms) >= 4:
+                return
+
+    sources: list[str] = []
+    if preview.label:
+        sources.append(preview.label)
+        normalized = normalize_label(preview.label)
+        if normalized:
+            sources.append(normalized)
+
+    for source in sources:
+        _add_tokens(_tokenize(source))
         if len(cleaned) + len(extra_terms) >= 2:
             break
+
     if len(cleaned) + len(extra_terms) < 2 and preview.label:
-        word = preview.label.strip()
-        if len(word) > 1:
-            midpoint = max(1, len(word) // 2)
-            part_a = word[:midpoint]
-            part_b = word[midpoint:]
-            for part in (part_a, part_b):
-                token = part.strip()
-                if token and token not in cleaned and token not in extra_terms:
-                    extra_terms.append(token)
-                if len(cleaned) + len(extra_terms) >= 2:
-                    break
+        filler = preview.label.strip() or normalize_label(preview.label)
+        if filler:
+            while len(cleaned) + len(extra_terms) < 2:
+                extra_terms.append(filler)
+
     merged = (cleaned + extra_terms)[:4]
     if len(merged) < 2:
         return None
