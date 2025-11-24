@@ -24,7 +24,7 @@ class RegulationCollector:
     def save_regulation_file(
         self,
         scope: str,  # "international", "country", "airline"
-        code: str,   # 규정 코드 (예: "IATA", "KE", "KR", "US_PACKSAFE")
+        code: str,   # 규정 코드 (예: "IATA", "KE", "KR", "US")
         name: str,   # 규정 이름
         source_url: Optional[str] = None,
         source_etag: Optional[str] = None,

@@ -211,3 +211,18 @@ def test_trip_delete_cascades_bags_and_items(db_session: Session) -> None:
         db_session.scalar(select(func.count()).select_from(BagItem).where(BagItem.trip_id == trip_id)) == 0
     )
 
+
+def test_delete_bag_item_removes_record(db_session: Session) -> None:
+    user = _create_user(db_session)
+    auth = _make_auth(user)
+    _, trip_id = _create_trip(db_session, auth)
+
+    carry_on = _get_bag(db_session, trip_id, "carry_on")
+    item = _save_preview_item(db_session, auth, carry_on, trip_id, "umbrella")
+    assert db_session.get(BagItem, item.item_id) is not None
+
+    service = BagService(db_session, auth)
+    service.delete_item(item.item_id)
+
+    assert db_session.get(BagItem, item.item_id) is None
+

@@ -90,16 +90,23 @@ class GeminiClient:
             self._circuit_open_until = 0.0
 
 
-_CLIENT: GeminiClient | None = None
+_CLIENTS: dict[tuple[str, float], GeminiClient] = {}
 
 
-def get_gemini_client() -> GeminiClient:
-    global _CLIENT
-    if _CLIENT is None:
-        _CLIENT = GeminiClient(
+def get_gemini_client(*, model_name: str | None = None, timeout: float | None = None) -> GeminiClient:
+    """Return a Gemini client configured for the requested model/timeout pair."""
+
+    target_model = model_name or settings.gemini_model
+    target_timeout = timeout or settings.llm_classifier_timeout_sec
+
+    key = (target_model, target_timeout)
+    client = _CLIENTS.get(key)
+    if client is None:
+        client = GeminiClient(
             api_key=settings.gemini_api_key or "",
-            model_name=settings.gemini_model,
-            timeout=settings.llm_classifier_timeout_sec,
+            model_name=target_model,
+            timeout=target_timeout,
         )
-    return _CLIENT
+        _CLIENTS[key] = client
+    return client
 

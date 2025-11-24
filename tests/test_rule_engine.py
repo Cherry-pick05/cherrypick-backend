@@ -81,10 +81,8 @@ def test_cosmetics_liquid_merges_security_and_airline(db_session: Session) -> No
     assert len(result.trace) == 4
 
     tips = generate_ai_tips(payload, result, limit=4)
-    tip_ids = [tip.id for tip in tips]
-    assert "tip.split_100ml" in tip_ids
-    assert "tip.zip_bag" in tip_ids
-    assert "tip.rescreen" in tip_ids
+    tip_ids = {tip.id for tip in tips}
+    assert {"tip.split_100ml", "tip.zip_bag", "tip.carry_limit"}.issubset(tip_ids)
 
 
 def test_cosmetics_liquid_without_rescreening_excludes_countries(db_session: Session) -> None:
@@ -108,7 +106,7 @@ def test_cosmetics_liquid_without_rescreening_excludes_countries(db_session: Ses
     ]
 
     tips = generate_ai_tips(payload, result)
-    assert "tip.rescreen" not in {tip.id for tip in tips}
+    assert "tip.split_100ml" in {tip.id for tip in tips}
 
 
 def test_cosmetics_liquid_via_japan_orders_security(db_session: Session) -> None:
@@ -133,7 +131,7 @@ def test_cosmetics_liquid_via_japan_orders_security(db_session: Session) -> None
     ]
 
     tips = generate_ai_tips(payload, result)
-    assert "tip.rescreen" in {tip.id for tip in tips}
+    assert "tip.zip_bag" in {tip.id for tip in tips}
 
 
 def test_aerosol_uses_dg_limits_when_no_security(db_session: Session) -> None:
@@ -156,7 +154,7 @@ def test_aerosol_uses_dg_limits_when_no_security(db_session: Session) -> None:
     assert checked_conditions["pressure_cap_required"] is True
     assert "DG_PSAFE_AEROSOL_MD" in result.decision.checked.reason_codes
     assert [(source.layer, source.code) for source in result.sources] == [
-        ("dangerous_goods", "US_PACKSAFE_MD")
+        ("dangerous_goods", "US")
     ]
 
     tips = generate_ai_tips(payload, result)
@@ -181,7 +179,7 @@ def test_aerosol_with_rescreening_includes_cn_security(db_session: Session) -> N
     assert [(source.layer, source.code) for source in result.sources] == [
         ("country_security", "KR"),
         ("country_security", "CN"),
-        ("dangerous_goods", "US_PACKSAFE_MD"),
+        ("dangerous_goods", "US"),
     ]
     assert result.decision.carry_on.status == "deny"
     assert result.decision.checked.status in ("allow", "limit")
@@ -298,7 +296,7 @@ def _seed_airline_rule(session: Session, code: str) -> None:
 
 
 def _seed_pack_safe_aerosol_rule(session: Session) -> None:
-    rule_set = _create_rule_set(session, scope="country", code="US_PACKSAFE_MD")
+    rule_set = _create_rule_set(session, scope="country", code="US")
     item_rule = ItemRule(
         id=_next_id(),
         rule_set_id=rule_set.id,
@@ -349,7 +347,7 @@ def _seed_lithium_rules(session: Session) -> None:
     )
     session.add(iata_constraint)
 
-    pack_safe = _create_rule_set(session, scope="country", code="US_PACKSAFE_MD")
+    pack_safe = _create_rule_set(session, scope="country", code="US")
     pack_rule = ItemRule(
         id=_next_id(),
         rule_set_id=pack_safe.id,

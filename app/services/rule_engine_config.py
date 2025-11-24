@@ -58,7 +58,7 @@ SECURITY_CANONICALS: dict[str, tuple[str, ...]] = {
 
 SECURITY_COUNTRY_CODE_MAP: dict[str, str] = {
     "KR": "KR",
-    "US": "US_TSA",
+    "US": "US",
     "CN": "CN",
     "JP": "JP",
 }
@@ -90,7 +90,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Medical & Toiletry Articles",),
             reason_codes=("DG_PSAFE_AEROSOL_MD",),
             layer="dangerous_goods",
@@ -110,7 +110,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Alcoholic Beverages under 140 Proof",),
             reason_codes=("DG_US_PACKSAFE_ALC",),
             layer="dangerous_goods",
@@ -138,7 +138,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Batteries, Lithium",),
             reason_codes=("DG_US_PACKSAFE_LIION",),
             layer="dangerous_goods",
@@ -156,7 +156,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Portable Electronic Devices, Containing Batteries",),
             reason_codes=("DG_US_PACKSAFE_PED",),
             layer="dangerous_goods",
@@ -175,7 +175,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Dry Ice",),
             reason_codes=("DG_US_PACKSAFE_DRYICE",),
             layer="dangerous_goods",
@@ -193,7 +193,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Electronic Cigarettes, Vaping Devices",),
             reason_codes=("DG_US_PACKSAFE_ECIG",),
             layer="dangerous_goods",
@@ -211,7 +211,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
+            code="US",
             item_name_contains=("Lighters",),
             reason_codes=("SEC_US_LIGHTER",),
             layer_kind="security",
@@ -232,7 +232,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
+            code="US",
             item_name_contains=("Knives",),
             reason_codes=("SEC_US_KNIFE",),
             layer_kind="security",
@@ -252,7 +252,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
+            code="US",
             item_name_contains=("Scissors",),
             reason_codes=("SEC_US_SCISSORS",),
             layer_kind="security",
@@ -272,7 +272,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
+            code="US",
             item_name_contains=("Multi-tools",),
             reason_codes=("SEC_US_MULTITOOL",),
             layer_kind="security",
@@ -292,7 +292,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_PACKSAFE_MD",
+            code="US",
             item_name_contains=("Power Banks",),
             reason_codes=("DG_US_PACKSAFE_POWERBANK",),
             layer="dangerous_goods",
@@ -311,7 +311,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
+            code="US",
             item_name_contains=("Firearms",),
             reason_codes=("SEC_US_FIREARM",),
             layer_kind="security",
@@ -330,7 +330,7 @@ CANONICAL_RULE_SELECTORS: dict[str, Sequence[RuleSelector]] = {
         ),
         RuleSelector(
             scope="country",
-            code="US_TSA",
+            code="US",
             item_name_contains=("Ammunition",),
             reason_codes=("SEC_US_AMMO",),
             layer_kind="security",

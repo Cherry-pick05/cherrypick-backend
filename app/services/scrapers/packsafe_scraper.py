@@ -90,7 +90,7 @@ def fetch_packsafe_items() -> list[dict[str, Any]]:
 def build_packsafe_regulation() -> dict[str, Any]:
     return {
         "scope": "country",
-        "code": "US_PACKSAFE",
+        "code": "US",
         "name": "FAA PackSafe Printable Chart",
         "rules": fetch_packsafe_items(),
     }

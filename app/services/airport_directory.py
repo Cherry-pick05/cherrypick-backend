@@ -215,7 +215,7 @@ class CountryDirectoryService:
         rows = self.db.scalars(
             select(RuleSet.code).where(RuleSet.scope == "country")
         ).all()
-        # code에서 국가 코드 부분만 추출 (예: "US_TSA" -> "US", "KR" -> "KR")
+        # code에서 국가 코드 부분만 추출 (예: "US_DG" -> "US", "KR" -> "KR")
         db_codes = set()
         for code in rows:
             code_upper = code.upper()
@@ -275,7 +275,7 @@ class AirportDirectoryService:
         rows = self.db.scalars(
             select(RuleSet.code).where(RuleSet.scope == "country")
         ).all()
-        # code에서 국가 코드 부분만 추출 (예: "US_TSA" -> "US", "KR" -> "KR")
+        # code에서 국가 코드 부분만 추출 (예: "US_DG" -> "US", "KR" -> "KR")
         db_codes = set()
         for code in rows:
             code_upper = code.upper()

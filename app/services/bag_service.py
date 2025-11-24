@@ -160,6 +160,11 @@ class BagService:
         self.db.refresh(item)
         return self._build_item_detail(item)
 
+    def delete_item(self, item_id: int) -> None:
+        item = self._get_item_for_user(item_id)
+        self.db.delete(item)
+        self.db.commit()
+
     # ------------------------------------------------------------------ #
     # Internal helpers
     # ------------------------------------------------------------------ #

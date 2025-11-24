@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     llm_classifier_enabled: bool = True
     llm_classifier_l1_cache_size: int = 256
 
+    llm_tips_enabled: bool = True
+    llm_tips_model: str | None = None
+    llm_tips_temperature: float = 0.2
+    llm_tips_max_tokens: int = 256
+    llm_tips_timeout_sec: float = 6.0
+
     # Travel recommendation integrations
     weather_api_key: str | None = None
     weather_api_base_url: str = "https://api.openweathermap.org/data/2.5"

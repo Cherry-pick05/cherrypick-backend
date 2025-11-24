@@ -68,7 +68,7 @@ def parse_packsafe_markdown(md_path: Path = PACKSAFE_MD_PATH) -> list[dict[str, 
 def build_packsafe_markdown_regulation(md_path: Path = PACKSAFE_MD_PATH) -> dict[str, Any]:
     return {
         "scope": "country",
-        "code": "US_PACKSAFE_MD",
+        "code": "US",
         "name": "FAA PackSafe (Markdown)",
         "rules": parse_packsafe_markdown(md_path),
     }

@@ -1,6 +1,6 @@
 {
   "scope": "country",
-  "code": "US_PACKSAFE_MD",
+  "code": "US",
   "name": "FAA PackSafe",
   "region": "americas",
   "rules": [

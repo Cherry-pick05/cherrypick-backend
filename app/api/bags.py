@@ -63,3 +63,8 @@ def update_bag_item(item_id: int, payload: BagItemUpdate, service: BagService = 
     return service.update_item(item_id, payload)
 
 
+@router.delete("/bag-items/{item_id}", status_code=204)
+def delete_bag_item(item_id: int, service: BagService = Depends(get_bag_service)) -> None:
+    service.delete_item(item_id)
+
+

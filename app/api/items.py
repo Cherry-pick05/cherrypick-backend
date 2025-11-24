@@ -150,7 +150,12 @@ def preview_item(req: PreviewRequest, db: Session = Depends(get_db)) -> PreviewR
     if "missing_params" not in flags:
         flags["missing_params"] = []
 
-    engine_response.ai_tips = generate_ai_tips(engine_req, engine_response)
+    engine_response.ai_tips = generate_ai_tips(
+        engine_req,
+        engine_response,
+        label=label,
+        locale=req.locale,
+    )
     narration = build_narration(req, classification, engine_response)
 
     flags["needs_review"] = needs_review
@@ -333,7 +338,12 @@ def _fallback_preview(
             flags={"llm_error": error_message, "engine_error": "rule_engine_unavailable"},
         )
 
-    engine_response.ai_tips = generate_ai_tips(engine_req, engine_response)
+    engine_response.ai_tips = generate_ai_tips(
+        engine_req,
+        engine_response,
+        label=label,
+        locale=req.locale,
+    )
     narration = build_narration(req, classification, engine_response)
 
     return PreviewResponse(

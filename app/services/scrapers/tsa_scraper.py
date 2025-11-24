@@ -106,7 +106,7 @@ def build_tsa_regulation() -> dict[str, Any]:
     rules = fetch_tsa_items()
     return {
         "scope": "country",
-        "code": "US_TSA",
+        "code": "US",
         "name": "TSA What Can I Bring",
         "rules": rules,
     }

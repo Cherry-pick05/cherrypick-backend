@@ -141,6 +141,11 @@
 - Response: 갱신된 `BagItemDetail`.
 - 사용처: 체크리스트 편집(완료 체크, 수량 조정, 메모 입력, 가방 이동)을 서버에 반영할 때.
 
+### 4.4 `DELETE /v1/bag-items/{item_id}`
+- Body 없음
+- Response: `204 No Content`
+- 사용처: 사용자가 체크리스트에서 아이템을 완전히 제거할 때. 규정 매칭 기록(`regulation_matches`)은 그대로 남아 감사/통계용으로 활용 가능합니다.
+
 ---
 
 ## 5. 트립 생성/수정 시 참고
